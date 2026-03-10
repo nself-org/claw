@@ -1,0 +1,105 @@
+name: Build libnclaw FFI Bindings
+
+on:
+  push:
+    paths:
+      - 'libs/libnclaw/**'
+  pull_request:
+    paths:
+      - 'libs/libnclaw/**'
+  workflow_dispatch:
+
+jobs:
+  # ============================================================
+  # Rust tests — run on all platforms
+  # ============================================================
+  test:
+    name: Test libnclaw (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            libs/libnclaw/target
+          key: ${{ runner.os }}-libnclaw-${{ hashFiles('libs/libnclaw/Cargo.lock') }}
+
+      - name: Run tests
+        run: cargo test
+        working-directory: libs/libnclaw
+
+  # ============================================================
+  # Build xcframework for iOS/macOS (Swift FFI)
+  # ============================================================
+  build-xcframework:
+    name: Build xcframework (iOS + macOS)
+    runs-on: macos-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust targets
+        run: |
+          rustup target add aarch64-apple-ios
+          rustup target add x86_64-apple-ios
+          rustup target add aarch64-apple-ios-sim
+          rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
+
+      - name: Install cargo-swift (if available) or build manually
+        run: cargo install cargo-swift --quiet || true
+
+      - name: Build iOS targets
+        working-directory: libs/libnclaw
+        run: |
+          cargo build --release --target aarch64-apple-ios
+          cargo build --release --target aarch64-apple-ios-sim
+          cargo build --release --target aarch64-apple-darwin
+
+      - name: Upload xcframework artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libnclaw-xcframework
+          path: libs/libnclaw/target/**/release/liblibnclaw.a
+          retention-days: 7
+
+  # ============================================================
+  # Build AAR for Android (Kotlin FFI)
+  # ============================================================
+  build-aar:
+    name: Build AAR (Android)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust Android targets
+        run: |
+          rustup target add aarch64-linux-android
+          rustup target add armv7-linux-androideabi
+          rustup target add x86_64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --quiet
+
+      - name: Build Android targets
+        working-directory: libs/libnclaw
+        run: |
+          cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 build --release
+
+      - name: Upload AAR artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libnclaw-android
+          path: libs/libnclaw/target/*/release/liblibnclaw.so
+          retention-days: 7
