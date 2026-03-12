@@ -1,0 +1,18 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:nclaw/main.dart';
+
+void main() {
+  testWidgets('NClawApp renders pairing screen when no server configured',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: NClawApp()),
+    );
+    await tester.pumpAndSettle();
+
+    // Should show the pairing screen with server URL input.
+    expect(find.text('Pair with your server'), findsOneWidget);
+    expect(find.text('Connect'), findsOneWidget);
+  });
+}
