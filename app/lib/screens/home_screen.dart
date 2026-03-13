@@ -1,12 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/action_provider.dart';
 import '../providers/connection_provider.dart';
 import 'action_list_screen.dart';
+import 'chat_screen.dart';
 import 'server_list_screen.dart';
 
-/// Primary screen showing connection status and action queue from nself-claw backend.
+/// Provider holding the currently selected bottom-nav tab index.
+///
+/// Exposed so that the deep-link handler in main.dart can switch tabs
+/// (e.g. `nclaw://chat` → set to 0).
+final homeTabProvider = StateProvider<int>((ref) => 0);
+
+/// Primary screen with bottom navigation: Chat / Actions / Servers.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -14,45 +21,19 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final conn = ref.watch(connectionProvider);
     final pendingCount = ref.watch(pendingActionCountProvider);
-    final theme = Theme.of(context);
+    final selectedTab = ref.watch(homeTabProvider);
     final activeServer = conn.activeServer;
+
+    final tabs = [
+      const ChatScreen(),
+      _ActionsTab(conn: conn, pendingCount: pendingCount),
+      const ServerListScreen(),
+    ];
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('\u014BClaw'),
         actions: [
-          // Action queue badge + navigation.
-          IconButton(
-            icon: Badge(
-              label: Text('$pendingCount'),
-              isLabelVisible: pendingCount > 0,
-              child: const Icon(Icons.checklist),
-            ),
-            tooltip: 'Actions',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const ActionListScreen(),
-                ),
-              );
-            },
-          ),
-          // Server count badge + server list button.
-          IconButton(
-            icon: Badge(
-              label: Text('${conn.servers.length}'),
-              isLabelVisible: conn.servers.length > 1,
-              child: const Icon(Icons.dns),
-            ),
-            tooltip: 'Servers',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const ServerListScreen(),
-                ),
-              );
-            },
-          ),
           // Disconnect from active server.
           IconButton(
             icon: const Icon(Icons.link_off),
@@ -67,69 +48,130 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ConnectionStatusCard(
-              status: conn.status,
-              serverName: activeServer?.name ?? 'No server',
-              serverUrl: activeServer?.url ?? '',
-              onReconnect: () {
-                ref.read(connectionProvider.notifier).reconnect();
-              },
+      body: tabs[selectedTab],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedTab,
+        onDestinationSelected: (index) {
+          ref.read(homeTabProvider.notifier).state = index;
+        },
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble),
+            label: 'Chat',
+          ),
+          NavigationDestination(
+            icon: Badge(
+              label: Text('$pendingCount'),
+              isLabelVisible: pendingCount > 0,
+              child: const Icon(Icons.bolt_outlined),
             ),
-            const SizedBox(height: 24),
-            // Action queue header with badge.
-            InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const ActionListScreen(),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Row(
-                children: [
-                  Text(
-                    'Action Queue',
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  if (pendingCount > 0) ...[
-                    const SizedBox(width: 8),
-                    Badge(
-                      label: Text('$pendingCount'),
-                      child: const SizedBox.shrink(),
-                    ),
-                  ],
-                  const Spacer(),
-                  Icon(
-                    Icons.chevron_right,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            selectedIcon: Badge(
+              label: Text('$pendingCount'),
+              isLabelVisible: pendingCount > 0,
+              child: const Icon(Icons.bolt),
+            ),
+            label: 'Actions',
+          ),
+          NavigationDestination(
+            icon: Badge(
+              label: Text('${conn.servers.length}'),
+              isLabelVisible: conn.servers.length > 1,
+              child: const Icon(Icons.dns_outlined),
+            ),
+            selectedIcon: Badge(
+              label: Text('${conn.servers.length}'),
+              isLabelVisible: conn.servers.length > 1,
+              child: const Icon(Icons.dns),
+            ),
+            label: 'Servers',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Actions tab: connection status card + action queue shortcut.
+///
+/// This preserves the original home screen body content under the new
+/// bottom-nav shell.
+class _ActionsTab extends ConsumerWidget {
+  final ConnectionState conn;
+  final int pendingCount;
+
+  const _ActionsTab({
+    required this.conn,
+    required this.pendingCount,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final activeServer = conn.activeServer;
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _ConnectionStatusCard(
+            status: conn.status,
+            serverName: activeServer?.name ?? 'No server',
+            serverUrl: activeServer?.url ?? '',
+            onReconnect: () {
+              ref.read(connectionProvider.notifier).reconnect();
+            },
+          ),
+          const SizedBox(height: 24),
+          // Action queue header with badge.
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ActionListScreen(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                Text(
+                  'Action Queue',
+                  style: theme.textTheme.titleMedium,
+                ),
+                if (pendingCount > 0) ...[
+                  const SizedBox(width: 8),
+                  Badge(
+                    label: Text('$pendingCount'),
+                    child: const SizedBox.shrink(),
                   ),
                 ],
-              ),
+                const Spacer(),
+                Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Center(
-                child: Text(
-                  conn.status == ConnectionStatus.connected
-                      ? pendingCount > 0
-                          ? '$pendingCount action${pendingCount == 1 ? '' : 's'} pending approval'
-                          : 'Waiting for actions from server...'
-                      : 'Not connected',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.5),
-                  ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: Center(
+              child: Text(
+                conn.status == ConnectionStatus.connected
+                    ? pendingCount > 0
+                        ? '$pendingCount action${pendingCount == 1 ? '' : 's'} pending approval'
+                        : 'Waiting for actions from server...'
+                    : 'Not connected',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface
+                      .withValues(alpha: 0.5),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

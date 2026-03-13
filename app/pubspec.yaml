@@ -22,6 +22,8 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   mobile_scanner: ^5.2.3
   app_links: ^6.3.4
+  flutter_markdown: ^0.7.4
+  fl_chart: ^0.70.0
 
 dev_dependencies:
   flutter_test:
