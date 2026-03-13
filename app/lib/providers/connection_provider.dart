@@ -265,6 +265,11 @@ final connectionProvider =
     } catch (_) {
       actionQueue = null;
     }
-    return ConnectionNotifier(actionQueue: actionQueue);
+    final notifier = ConnectionNotifier(actionQueue: actionQueue);
+    // Give the action notifier the live ClawClient so approve() can send
+    // WebSocket results back to the server. Done here to avoid a circular
+    // import (connection_provider already imports action_provider).
+    ref.read(actionProvider.notifier).setClient(notifier.client);
+    return notifier;
   },
 );

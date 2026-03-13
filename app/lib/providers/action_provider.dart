@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/claw_action.dart';
+import '../services/action_executor_service.dart';
 import '../services/action_queue_service.dart';
+import '../services/claw_client.dart';
 
 /// Which tab is active in the action list screen.
 enum ActionTab { pending, active, history }
@@ -43,11 +45,21 @@ class ActionQueueState {
 /// Manages the action queue state and bridges UI to [ActionQueueService].
 class ActionNotifier extends StateNotifier<ActionQueueState> {
   final ActionQueueService _service;
+  ClawClient? _client;
   StreamSubscription<void>? _changeSub;
   Timer? _expireTimer;
 
   ActionNotifier(this._service) : super(const ActionQueueState()) {
     _init();
+  }
+
+  /// Wire in the WebSocket client after construction.
+  ///
+  /// Called by [ConnectionNotifier] once it has a live [ClawClient].
+  /// Using a setter avoids a circular import between action_provider and
+  /// connection_provider.
+  void setClient(ClawClient client) {
+    _client = client;
   }
 
   Future<void> _init() async {
@@ -100,9 +112,40 @@ class ActionNotifier extends StateNotifier<ActionQueueState> {
     await _refresh();
   }
 
-  /// Approve a pending action. Sends approval to the server via the callback.
+  /// Approve a pending action, execute it, and send the result over WebSocket.
   Future<void> approve(String actionId) async {
+    // 1. Mark approved so the UI reflects the transition immediately.
     await _service.updateStatus(actionId, ActionStatus.approved);
+
+    // 2. Load the full action from the queue.
+    final action = await _service.getById(actionId);
+    if (action == null) return;
+
+    // 3. Mark as executing.
+    await _service.updateStatus(actionId, ActionStatus.executing);
+
+    // 4. Run the action on-device.
+    final result = await ActionExecutorService().execute(action);
+
+    // 5. Determine terminal status from result.
+    final isError = result.containsKey('error');
+    final isPending = result['pending'] == true; // OAuth awaiting deep link
+    final terminalStatus =
+        isError ? ActionStatus.failed : ActionStatus.done;
+
+    // For OAuth actions that opened the browser, stay in 'executing' until
+    // the deep link callback arrives via OAuthService.completeOAuth().
+    if (!isPending) {
+      await _service.updateStatus(actionId, terminalStatus, result: result);
+    }
+
+    // 6. Send result back to the server over WebSocket (if connected).
+    _client?.send({
+      'type': 'action_result',
+      'actionId': actionId,
+      'status': isPending ? 'executing' : terminalStatus.toJson(),
+      'result': result,
+    });
   }
 
   /// Deny a pending action. Marks it as failed with a denial reason.
@@ -140,6 +183,9 @@ final actionQueueServiceProvider = Provider<ActionQueueService>((ref) {
 });
 
 /// The action queue state provider.
+///
+/// The [ClawClient] is wired in post-construction via [ActionNotifier.setClient],
+/// called by [ConnectionNotifier] to avoid a circular import.
 final actionProvider =
     StateNotifierProvider<ActionNotifier, ActionQueueState>((ref) {
   final service = ref.watch(actionQueueServiceProvider);
