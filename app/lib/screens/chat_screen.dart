@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/chat_provider.dart';
 import '../providers/connection_provider.dart';
+import 'thread_list_screen.dart';
 
 /// Full-screen chat UI for the nClaw AI assistant.
 class ChatScreen extends ConsumerStatefulWidget {
@@ -112,6 +113,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final sessionTitle = chatState.activeSession?.displayTitle ?? '\u014BClaw';
     final parentSession = chatState.parentSession;
     final activeId = chatState.activeSessionId;
+    final sessionTags = chatState.activeSession?.tags ?? const [];
+    final breakout = chatState.breakoutSuggestion;
 
     return Scaffold(
       appBar: AppBar(
@@ -139,6 +142,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               onTap: () => ref
                   .read(chatProvider.notifier)
                   .switchSession(parentSession.id),
+            ),
+          // Drift-detection banner — animates in/out.
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+            child: breakout != null
+                ? _BreakoutBanner(
+                    suggestion: breakout,
+                    onBranch: activeId != null
+                        ? () => ref
+                            .read(chatProvider.notifier)
+                            .branchSession(activeId)
+                        : null,
+                    onDismiss: () =>
+                        ref.read(chatProvider.notifier).dismissBreakout(),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          // Active session tag chips — tap to filter ThreadListScreen.
+          if (sessionTags.isNotEmpty)
+            _SessionTagsBar(
+              tags: sessionTags,
+              onTagTap: (tag) => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      ThreadListScreen(initialTagFilter: tag),
+                ),
+              ),
             ),
           Expanded(
             child: messages.isEmpty
@@ -553,5 +584,138 @@ class _BreadcrumbBar extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Breakout suggestion banner
+// ---------------------------------------------------------------------------
+
+/// Animated banner shown when the backend detects topic drift.
+///
+/// [New Thread] calls [onBranch] to start a sub-session.
+/// [✕] calls [onDismiss] to suppress the banner.
+class _BreakoutBanner extends StatelessWidget {
+  final BreakoutSuggestion suggestion;
+  final VoidCallback? onBranch;
+  final VoidCallback onDismiss;
+
+  const _BreakoutBanner({
+    required this.suggestion,
+    required this.onBranch,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.tertiary;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        border: Border(
+          bottom: BorderSide(color: accent.withValues(alpha: 0.25)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.call_split_outlined, size: 16, color: accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'New topic: ${suggestion.newTopic}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(color: accent),
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (onBranch != null)
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: accent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: onBranch,
+              child: const Text('New Thread'),
+            ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16),
+            color: accent.withValues(alpha: 0.7),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            onPressed: onDismiss,
+            tooltip: 'Dismiss',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Session tag chips bar
+// ---------------------------------------------------------------------------
+
+/// Horizontal scrollable colour-coded tag chips for the active session.
+///
+/// Tapping a chip pushes [ThreadListScreen] pre-filtered to that tag.
+class _SessionTagsBar extends StatelessWidget {
+  final List<String> tags;
+  final ValueChanged<String> onTagTap;
+
+  const _SessionTagsBar({required this.tags, required this.onTagTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        itemCount: tags.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (_, i) {
+          final tag = tags[i];
+          final color = _tagColor(tag);
+          return ActionChip(
+            label: Text(
+              tag,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+            visualDensity: VisualDensity.compact,
+            backgroundColor: color.withValues(alpha: 0.12),
+            side: BorderSide(color: color.withValues(alpha: 0.35)),
+            onPressed: () => onTagTap(tag),
+          );
+        },
+      ),
+    );
+  }
+
+  static Color _tagColor(String tag) {
+    switch (tag) {
+      case 'code':     return const Color(0xFF3B82F6);
+      case 'infra':    return const Color(0xFFF97316);
+      case 'admin':    return const Color(0xFFEF4444);
+      case 'personal': return const Color(0xFF22C55E);
+      case 'research': return const Color(0xFFA855F7);
+      case 'question': return const Color(0xFF06B6D4);
+      case 'task':     return const Color(0xFFEAB308);
+      case 'planning': return const Color(0xFF8B5CF6);
+      default:         return const Color(0xFF6B7280);
+    }
   }
 }

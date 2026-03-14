@@ -58,7 +58,14 @@ class ThreadListScreen extends ConsumerStatefulWidget {
   /// Optional initial project filter.
   final String? filterProjectId;
 
-  const ThreadListScreen({super.key, this.filterProjectId});
+  /// Optional initial tag filter — pre-selects a tag chip on open.
+  final String? initialTagFilter;
+
+  const ThreadListScreen({
+    super.key,
+    this.filterProjectId,
+    this.initialTagFilter,
+  });
 
   @override
   ConsumerState<ThreadListScreen> createState() => _ThreadListScreenState();
@@ -73,6 +80,7 @@ class _ThreadListScreenState extends ConsumerState<ThreadListScreen> {
   @override
   void initState() {
     super.initState();
+    _activeTagFilter = widget.initialTagFilter;
     _searchController.addListener(_onSearchChanged);
   }
 
