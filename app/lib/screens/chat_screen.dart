@@ -7,6 +7,7 @@ import '../providers/connection_provider.dart';
 import '../services/tts_service.dart';
 import '../widgets/voice_chat_widget.dart';
 import 'thread_list_screen.dart';
+import 'voice_conversation_screen.dart';
 
 /// Full-screen chat UI for the nClaw AI assistant.
 class ChatScreen extends ConsumerStatefulWidget {
@@ -302,6 +303,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             controller: _textController,
             isStreaming: isStreaming,
             onSend: _sendMessage,
+            onLongPressMic: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const VoiceConversationScreen(),
+                fullscreenDialog: true,
+              ),
+            ),
           ),
         ],
       ),
@@ -619,11 +626,13 @@ class _InputBar extends StatelessWidget {
   final TextEditingController controller;
   final bool isStreaming;
   final VoidCallback onSend;
+  final VoidCallback? onLongPressMic;
 
   const _InputBar({
     required this.controller,
     required this.isStreaming,
     required this.onSend,
+    this.onLongPressMic,
   });
 
   @override
@@ -635,14 +644,17 @@ class _InputBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
         child: Row(
           children: [
-            // Mic button — opens VoiceChatWidget overlay.
-            VoiceMicButton(
-              onTranscript: (text) {
-                controller.text = text;
-                controller.selection = TextSelection.collapsed(
-                  offset: text.length,
-                );
-              },
+            // Mic button — tap: voice input overlay; long-press: continuous mode.
+            GestureDetector(
+              onLongPress: onLongPressMic,
+              child: VoiceMicButton(
+                onTranscript: (text) {
+                  controller.text = text;
+                  controller.selection = TextSelection.collapsed(
+                    offset: text.length,
+                  );
+                },
+              ),
             ),
             const SizedBox(width: 4),
             Expanded(
