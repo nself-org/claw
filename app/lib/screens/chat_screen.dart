@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/chat_provider.dart';
 import '../providers/connection_provider.dart';
 import '../services/tts_service.dart';
+import '../providers/voice_settings_provider.dart';
 import '../widgets/voice_chat_widget.dart';
 import 'thread_list_screen.dart';
 import 'voice_conversation_screen.dart';
+import 'voice_settings_screen.dart';
 
 /// Full-screen chat UI for the nClaw AI assistant.
 class ChatScreen extends ConsumerStatefulWidget {
@@ -198,6 +200,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final sessionTags = chatState.activeSession?.tags ?? const [];
     final breakout = chatState.breakoutSuggestion;
 
+    // Sync auto-play setting from provider into local state.
+    _autoPlay = ref.watch(voiceSettingsProvider).autoPlay;
+
     // Auto-play: fire when streaming transitions to done.
     ref.listen<bool>(
       chatProvider.select((s) => s.isStreaming),
@@ -212,6 +217,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         title: Text(sessionTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.mic_none_outlined),
+            tooltip: 'Voice settings',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const VoiceSettingsScreen(),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.list),
             tooltip: 'Sessions',
