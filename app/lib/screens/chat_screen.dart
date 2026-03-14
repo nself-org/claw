@@ -80,7 +80,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         ? Theme.of(ctx).colorScheme.primary
                         : null,
                   ),
-                  title: Text(session.title),
+                  title: Text(session.displayTitle),
                   subtitle: Text(
                     '${session.messages.length} message${session.messages.length == 1 ? '' : 's'}',
                     style: Theme.of(ctx).textTheme.bodySmall,
@@ -109,7 +109,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatState = ref.watch(chatProvider);
     final messages = chatState.messages;
     final isStreaming = chatState.isStreaming;
-    final sessionTitle = chatState.activeSession?.title ?? '\u014BClaw';
+    final sessionTitle = chatState.activeSession?.displayTitle ?? '\u014BClaw';
 
     return Scaffold(
       appBar: AppBar(

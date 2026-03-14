@@ -115,10 +115,12 @@ void main() {
           ],
         ),
       );
-      await tester.pumpAndSettle();
+      // Use pump instead of pumpAndSettle — CircularProgressIndicator is an
+      // infinite animation and pumpAndSettle would time out.
+      await tester.pump();
 
-      // Spinner shown while streaming
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // Spinner shown while streaming (both _EmptyChat and _InputBar show one).
+      expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
 
       // Prompt text hidden while streaming
       expect(find.text('Ask \u014BClaw anything'), findsNothing);
