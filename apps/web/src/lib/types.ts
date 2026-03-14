@@ -14,8 +14,15 @@ export interface ChatSession {
   title: string
   created_at: string
   message_count: number
+  project_id?: string
   // Local-only: messages loaded into memory
   messages?: ChatMessage[]
+}
+
+export interface Project {
+  id: string
+  name: string
+  created_at: string
 }
 
 // ── Model types ───────────────────────────────────────────────────────────────

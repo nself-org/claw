@@ -11,6 +11,7 @@ import {
   newSession,
   deleteSession,
   addMessageToSession,
+  assignSessionToProject,
 } from '@/lib/storage'
 import type { ChatMessage, ChatSession } from '@/lib/types'
 
@@ -105,6 +106,15 @@ export default function ChatInterface() {
         setMessages([])
       }
     }
+  }
+
+  function handleNewSessionInProject(projectId: string) {
+    const session = newSession()
+    assignSessionToProject(session.id, projectId)
+    refreshSessions()
+    setActiveSession({ ...session, project_id: projectId })
+    setMessages([])
+    setSidebarOpen(false)
   }
 
   const sendMessage = useCallback(async () => {
@@ -242,8 +252,10 @@ export default function ChatInterface() {
         sessions={sessions}
         activeSessionId={activeSession?.id ?? null}
         onNewSession={handleNewSession}
+        onNewSessionInProject={handleNewSessionInProject}
         onSelectSession={handleSelectSession}
         onDeleteSession={handleDeleteSession}
+        onSessionsChanged={refreshSessions}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -257,6 +269,7 @@ export default function ChatInterface() {
         >
           {/* Mobile menu button */}
           <button
+            type="button"
             className="lg:hidden p-1.5 rounded-lg hover:bg-[#2A2A40] transition-colors"
             style={{ color: 'var(--text-muted)' }}
             onClick={() => setSidebarOpen(true)}
@@ -272,6 +285,7 @@ export default function ChatInterface() {
           <ModelSelector value={selectedModel} onChange={setSelectedModel} />
 
           <button
+            type="button"
             onClick={handleNewSession}
             title="New chat"
             className="hidden lg:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg hover:bg-[#2A2A40] transition-colors"
@@ -307,7 +321,7 @@ export default function ChatInterface() {
             style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
           >
             <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-3 opacity-70 hover:opacity-100">✕</button>
+            <button type="button" onClick={() => setError(null)} className="ml-3 opacity-70 hover:opacity-100">✕</button>
           </div>
         )}
 
@@ -358,6 +372,7 @@ export default function ChatInterface() {
             <div className="shrink-0 pb-1">
               {isStreaming ? (
                 <button
+                  type="button"
                   onClick={cancelStream}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-[#3A3A50] hover:bg-[#4A4A60] transition-colors"
                   title="Stop"
@@ -366,6 +381,7 @@ export default function ChatInterface() {
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={sendMessage}
                   disabled={!input.trim()}
                   className="w-8 h-8 flex items-center justify-center rounded-full bg-[#6366F1] hover:bg-[#4F46E5] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
