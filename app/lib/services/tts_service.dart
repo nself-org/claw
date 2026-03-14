@@ -1,9 +1,16 @@
 // T-1110: Text-to-speech service wrapping the flutter_tts package.
+// T-1117: Optional server TTS via POST /voice/synthesize (nself-voice plugin).
 //
 // Provides iOS (AVSpeechSynthesizer), Android (TextToSpeech), and macOS
 // (NSSpeechSynthesizer) TTS. Markdown is stripped before speaking.
+// When [serverUrl] is set, calls /voice/synthesize and plays the audio file.
+
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,6 +45,15 @@ class VoiceInfo {
 class TtsService {
   final FlutterTts _tts = FlutterTts();
   bool _ready = false;
+
+  /// When set, TTS is routed to POST [serverUrl]/voice/synthesize.
+  String? serverUrl;
+
+  /// Voice name for server TTS requests.
+  String? serverVoice;
+
+  /// Speed for server TTS requests (1.0 = normal).
+  double serverSpeed = 1.0;
 
   /// Whether the service has been initialised successfully.
   bool get isReady => _ready;
@@ -101,13 +117,50 @@ class TtsService {
   /// Speak [text], stripping any Markdown formatting first.
   ///
   /// If the engine is already speaking, the current utterance is stopped
-  /// before the new one starts.
+  /// before the new one starts. When [serverUrl] is set, audio is fetched
+  /// from POST [serverUrl]/voice/synthesize and played as an MP3 file.
   Future<void> speak(String text) async {
     if (!_ready) return;
     final clean = stripMarkdown(text);
     if (clean.isEmpty) return;
     await _tts.stop();
-    await _tts.speak(clean);
+    if (serverUrl != null && serverUrl!.isNotEmpty) {
+      await _speakViaServer(clean);
+    } else {
+      await _tts.speak(clean);
+    }
+  }
+
+  /// Synthesize [text] via the nself-voice server and play the resulting MP3.
+  ///
+  /// Falls back to the platform TTS engine on any network or server error.
+  Future<void> _speakViaServer(String text) async {
+    try {
+      final body = jsonEncode({
+        'text': text,
+        if (serverVoice != null) 'voice': serverVoice,
+        'speed': serverSpeed,
+      });
+      final response = await http
+          .post(
+            Uri.parse('$serverUrl/voice/synthesize'),
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        await _tts.speak(text);
+        return;
+      }
+      final tmpDir = await getTemporaryDirectory();
+      final tmpFile = File(
+        '${tmpDir.path}/nself_voice_${DateTime.now().millisecondsSinceEpoch}.mp3',
+      );
+      await tmpFile.writeAsBytes(response.bodyBytes);
+      await _tts.speak(tmpFile.path);
+    } catch (_) {
+      await _tts.speak(text);
+    }
   }
 
   /// Stop the current utterance immediately.
