@@ -395,25 +395,37 @@ class _ThreadTile extends StatelessWidget {
     final tags = session.tags;
     final visibleTags = tags.take(2).toList();
     final overflow = tags.length - visibleTags.length;
+    final isBranch = session.parentSessionId != null;
 
     return ListTile(
       onTap: onTap,
       onLongPress: onLongPress,
+      // Indent branch sessions to visually nest them.
+      contentPadding: EdgeInsets.only(
+        left: isBranch ? 28.0 : 16.0,
+        right: 16.0,
+      ),
       leading: CircleAvatar(
         radius: 18,
-        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+        backgroundColor: isBranch
+            ? theme.colorScheme.secondary.withValues(alpha: 0.15)
+            : theme.colorScheme.primary.withValues(alpha: 0.15),
         child: Icon(
           session.isAdminMode
               ? Icons.admin_panel_settings_outlined
-              : Icons.chat_bubble_outline,
+              : isBranch
+                  ? Icons.call_split_outlined
+                  : Icons.chat_bubble_outline,
           size: 18,
           color: session.isAdminMode
               ? theme.colorScheme.error
-              : theme.colorScheme.primary,
+              : isBranch
+                  ? theme.colorScheme.secondary
+                  : theme.colorScheme.primary,
         ),
       ),
       title: Text(
-        session.displayTitle,
+        isBranch ? '\u21b3 ${session.displayTitle}' : session.displayTitle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.bodyMedium?.copyWith(

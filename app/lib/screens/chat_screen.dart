@@ -110,6 +110,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messages = chatState.messages;
     final isStreaming = chatState.isStreaming;
     final sessionTitle = chatState.activeSession?.displayTitle ?? '\u014BClaw';
+    final parentSession = chatState.parentSession;
+    final activeId = chatState.activeSessionId;
 
     return Scaffold(
       appBar: AppBar(
@@ -130,6 +132,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
       body: Column(
         children: [
+          // Breadcrumb bar — shown when this session is a branch.
+          if (parentSession != null)
+            _BreadcrumbBar(
+              parentTitle: parentSession.displayTitle,
+              onTap: () => ref
+                  .read(chatProvider.notifier)
+                  .switchSession(parentSession.id),
+            ),
           Expanded(
             child: messages.isEmpty
                 ? _EmptyChat(isStreaming: isStreaming)
@@ -143,7 +153,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       // Reversed list — index 0 is the last message.
                       final msg =
                           messages[messages.length - 1 - index];
-                      return _MessageBubble(message: msg);
+                      return _MessageBubble(
+                        message: msg,
+                        onBranch: activeId != null
+                            ? () => ref
+                                .read(chatProvider.notifier)
+                                .branchSession(activeId)
+                            : null,
+                      );
                     },
                   ),
           ),
@@ -198,7 +215,10 @@ class _EmptyChat extends StatelessWidget {
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
 
-  const _MessageBubble({required this.message});
+  /// Called when the user selects "Branch from here". Null disables the option.
+  final VoidCallback? onBranch;
+
+  const _MessageBubble({required this.message, this.onBranch});
 
   @override
   Widget build(BuildContext context) {
@@ -207,11 +227,35 @@ class _MessageBubble extends StatelessWidget {
 
     return GestureDetector(
       onLongPress: () {
-        Clipboard.setData(ClipboardData(text: message.content));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Copied to clipboard'),
-            duration: Duration(seconds: 2),
+        showModalBottomSheet<void>(
+          context: context,
+          builder: (ctx) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.copy_outlined),
+                title: const Text('Copy'),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  Clipboard.setData(ClipboardData(text: message.content));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              if (onBranch != null)
+                ListTile(
+                  leading: const Icon(Icons.call_split_outlined),
+                  title: const Text('Branch from here'),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    onBranch!();
+                  },
+                ),
+            ],
           ),
         );
       },
@@ -459,6 +503,51 @@ class _InputBar extends StatelessWidget {
                       onPressed: onSend,
                       tooltip: 'Send',
                     ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Breadcrumb bar shown at the top of the chat body when the active session
+/// is a branch of another session. Tapping navigates back to the parent.
+class _BreadcrumbBar extends StatelessWidget {
+  final String parentTitle;
+  final VoidCallback onTap;
+
+  const _BreadcrumbBar({required this.parentTitle, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: theme.colorScheme.surfaceContainerHighest,
+        child: Row(
+          children: [
+            Icon(Icons.subdirectory_arrow_left,
+                size: 14, color: theme.colorScheme.primary),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                parentTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+            Text(
+              ' / Branch',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+              ),
             ),
           ],
         ),

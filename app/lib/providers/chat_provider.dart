@@ -249,6 +249,17 @@ class ChatState {
   /// Messages from the active session.
   List<ChatMessage> get messages => activeSession?.messages ?? const [];
 
+  /// Parent session of the active session, when it is a branch.
+  ChatSession? get parentSession {
+    final parentId = activeSession?.parentSessionId;
+    if (parentId == null) return null;
+    try {
+      return sessions.firstWhere((s) => s.id == parentId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   ChatState copyWith({
     List<ChatSession>? sessions,
     String? activeSessionId,
