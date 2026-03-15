@@ -7,13 +7,16 @@
 ///   await NotificationService.initialize(navigatorKey: _navigatorKey);
 ///
 /// Background message handler must be a top-level function:
-///   @pragma('vm:entry-point')
-///   Future<void> firebaseMessagingBackgroundHandler(RemoteMessage msg) async {
-///     await Firebase.initializeApp();
-///     await NotificationService.handleBackground(msg);
-///   }
-///   // Register before runApp:
-///   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+///
+/// ```dart
+/// @pragma('vm:entry-point')
+/// Future<void> firebaseMessagingBackgroundHandler(RemoteMessage msg) async {
+///   await Firebase.initializeApp();
+///   await NotificationService.handleBackground(msg);
+/// }
+/// // Register before runApp:
+/// FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+/// ```
 ///
 /// Route payload conventions (from server data payload):
 ///   {"route": "/digest"}    — navigate to DigestViewerScreen

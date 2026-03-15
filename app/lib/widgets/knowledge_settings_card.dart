@@ -15,11 +15,14 @@ import '../providers/knowledge_provider.dart';
 import '../providers/connection_provider.dart';
 
 // ---------------------------------------------------------------------------
-// Shared preferences keys
+// Shared preferences keys (used when wiring up shared_preferences)
 // ---------------------------------------------------------------------------
 
+// ignore: unused_element
 const _kInjectKnowledge = 'knowledge_inject';
+// ignore: unused_element
 const _kExpertMode = 'knowledge_expert_mode';
+// ignore: unused_element
 const _kShowBadge = 'knowledge_show_badge';
 
 // ---------------------------------------------------------------------------
@@ -106,6 +109,8 @@ class _KnowledgeSettingsCardState
   }
 
   Future<void> _confirmClearNotes(BuildContext context) async {
+    // Capture messenger before any async gap.
+    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -136,7 +141,7 @@ class _KnowledgeSettingsCardState
     }
     if (mounted) {
       setState(() => _noteCount = 0);
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('Deleted $deleted notes'),
           duration: const Duration(seconds: 2),
