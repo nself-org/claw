@@ -1,4 +1,4 @@
-import type { ChatSession, ChatMessage, LocalModel, UsagePeriod, UsageSummary, AdminService, AdminMetrics, AuditLogEntry, AdminQueryResult } from './types'
+import type { ChatSession, ChatMessage, LocalModel, UsagePeriod, UsageSummary, AdminService, AdminMetrics, AuditLogEntry, AdminQueryResult, ApiKeyRecord, CreatedApiKey, SystemPromptRecord, GatewayUsageRow } from './types'
 
 // Base URL from env — no trailing slash
 export function getBaseUrl(): string {
@@ -88,7 +88,7 @@ export interface StreamChatOptions {
   sessionId?: string
   model?: string
   onChunk: (chunk: string) => void
-  onDone: (meta: { tier_source?: string; latency_ms?: number; session_id?: string }) => void
+  onDone: (meta: { tier_source?: string; latency_ms?: number; session_id?: string; knowledge_used?: boolean }) => void
   onError: (err: Error) => void
   signal?: AbortSignal
 }
@@ -130,6 +130,7 @@ export async function streamChat(opts: StreamChatOptions): Promise<void> {
   let tier_source: string | undefined
   let latency_ms: number | undefined
   let session_id: string | undefined
+  let knowledge_used = false
 
   try {
     while (true) {
@@ -144,7 +145,7 @@ export async function streamChat(opts: StreamChatOptions): Promise<void> {
         if (!line.startsWith('data:')) continue
         const raw = line.slice(5).trim()
         if (raw === '[DONE]') {
-          onDone({ tier_source, latency_ms, session_id })
+          onDone({ tier_source, latency_ms, session_id, knowledge_used })
           return
         }
         try {
@@ -153,10 +154,12 @@ export async function streamChat(opts: StreamChatOptions): Promise<void> {
             tier_source?: string
             latency_ms?: number
             session_id?: string
+            suggested_actions?: string[]
           }
           if (parsed.tier_source) tier_source = parsed.tier_source
           if (parsed.latency_ms) latency_ms = parsed.latency_ms
           if (parsed.session_id) session_id = parsed.session_id
+          if (parsed.suggested_actions?.length) knowledge_used = true
           if (parsed.content) onChunk(parsed.content)
         } catch {
           // plain text chunk
@@ -171,5 +174,172 @@ export async function streamChat(opts: StreamChatOptions): Promise<void> {
     reader.releaseLock()
   }
 
-  onDone({ tier_source, latency_ms, session_id })
+  onDone({ tier_source, latency_ms, session_id, knowledge_used })
+}
+
+// ── API Keys (gateway) ────────────────────────────────────────────────────────
+
+export async function fetchApiKeys(): Promise<ApiKeyRecord[]> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/api-keys`)
+  if (!res.ok) throw new Error(`API keys fetch failed: ${res.status}`)
+  const data = await res.json() as { keys: ApiKeyRecord[] }
+  return data.keys ?? []
+}
+
+export async function createApiKey(
+  name: string,
+  adminAllowed: boolean,
+  rpmLimit: number,
+): Promise<CreatedApiKey> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/api-keys`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, admin_allowed: adminAllowed, rpm_limit: rpmLimit }),
+  })
+  if (!res.ok) throw new Error(`Create API key failed: ${res.status}`)
+  return res.json() as Promise<CreatedApiKey>
+}
+
+export async function revokeApiKey(id: string): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/api-keys/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error(`Revoke API key failed: ${res.status}`)
+}
+
+// ── System Prompts (gateway) ──────────────────────────────────────────────────
+
+export async function fetchSystemPrompts(): Promise<SystemPromptRecord[]> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/system-prompts`)
+  if (!res.ok) throw new Error(`System prompts fetch failed: ${res.status}`)
+  const data = await res.json() as { prompts: SystemPromptRecord[] }
+  return data.prompts ?? []
+}
+
+export async function createSystemPrompt(
+  name: string,
+  content: string,
+  isDefault: boolean,
+): Promise<SystemPromptRecord> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/system-prompts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content, is_default: isDefault }),
+  })
+  if (!res.ok) throw new Error(`Create system prompt failed: ${res.status}`)
+  return res.json() as Promise<SystemPromptRecord>
+}
+
+export async function updateSystemPrompt(
+  id: string,
+  name: string,
+  content: string,
+  isDefault: boolean,
+): Promise<SystemPromptRecord> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/system-prompts/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content, is_default: isDefault }),
+  })
+  if (!res.ok) throw new Error(`Update system prompt failed: ${res.status}`)
+  return res.json() as Promise<SystemPromptRecord>
+}
+
+export async function deleteSystemPrompt(id: string): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/claw/v1/system-prompts/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error(`Delete system prompt failed: ${res.status}`)
+}
+
+// ── Memories ──────────────────────────────────────────────────────────────────
+
+export interface MemoryRecord {
+  id: string
+  entity_id: string
+  entity_type: string
+  content: string
+  confidence: number
+  times_reinforced: number
+  source: string
+  created_at: string
+}
+
+export async function fetchMemories(userId: string): Promise<MemoryRecord[]> {
+  const res = await fetch(`${getBaseUrl()}/claw/memories?user_id=${encodeURIComponent(userId)}`)
+  if (!res.ok) throw new Error(`Memories fetch failed: ${res.status}`)
+  const data = await res.json() as { memories: MemoryRecord[] }
+  return data.memories ?? []
+}
+
+export async function addMemory(userId: string, content: string): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/claw/memories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: userId, content }),
+  })
+  if (!res.ok) throw new Error(`Add memory failed: ${res.status}`)
+}
+
+export async function deleteMemory(id: string): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/claw/memories/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error(`Delete memory failed: ${res.status}`)
+}
+
+export async function clearMemories(userId: string): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/claw/memories?user_id=${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  })
+  if (!res.ok) throw new Error(`Clear memories failed: ${res.status}`)
+}
+
+// ── Proactive scheduler ───────────────────────────────────────────────────────
+
+export interface ProactiveJob {
+  id: string
+  job_type: string
+  enabled: boolean
+  cron_expression: string
+  next_run_at: string | null
+  last_run_at: string | null
+  failure_count: number
+  quiet_hours_start: number
+  quiet_hours_end: number
+  config: Record<string, unknown>
+}
+
+export async function fetchProactiveJobs(): Promise<ProactiveJob[]> {
+  const res = await fetch(`${getBaseUrl()}/claw/proactive/jobs`)
+  if (!res.ok) throw new Error(`Proactive jobs fetch failed: ${res.status}`)
+  const data = await res.json() as { jobs: ProactiveJob[] }
+  return data.jobs ?? []
+}
+
+export async function toggleProactiveJob(jobType: string, enabled: boolean): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/claw/proactive/jobs/${encodeURIComponent(jobType)}/toggle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
+  if (!res.ok) throw new Error(`Toggle job failed: ${res.status}`)
+}
+
+export async function fetchProactiveDigest(): Promise<{ text: string; generated_at: string }> {
+  const res = await fetch(`${getBaseUrl()}/claw/proactive/digest`)
+  if (!res.ok) throw new Error(`Digest fetch failed: ${res.status}`)
+  return res.json() as Promise<{ text: string; generated_at: string }>
+}
+
+// ── Gateway usage ─────────────────────────────────────────────────────────────
+
+export async function fetchGatewayUsage(keyId?: string): Promise<GatewayUsageRow[]> {
+  const url = keyId
+    ? `${getBaseUrl()}/claw/v1/usage?key_id=${encodeURIComponent(keyId)}`
+    : `${getBaseUrl()}/claw/v1/usage`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Gateway usage fetch failed: ${res.status}`)
+  const data = await res.json() as { usage: GatewayUsageRow[] }
+  return data.usage ?? []
 }

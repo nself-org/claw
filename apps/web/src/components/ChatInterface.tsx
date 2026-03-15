@@ -174,13 +174,14 @@ export default function ChatInterface() {
           )
         )
       },
-      onDone({ tier_source, latency_ms, session_id }) {
+      onDone({ tier_source, latency_ms, session_id, knowledge_used }) {
         const finalMsg: ChatMessage = {
           id: assistantId,
           role: 'assistant',
           content: accumulated,
           tier_source,
           latency_ms,
+          knowledge_used,
           createdAt: Date.now(),
         }
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? finalMsg : m)))

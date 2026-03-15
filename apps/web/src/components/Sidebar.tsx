@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import type { ChatSession, Project } from '@/lib/types'
 import { newProject, deleteProject, assignSessionToProject, loadProjects } from '@/lib/storage'
+import KnowledgePanel from './KnowledgePanel'
 
 interface SidebarProps {
   sessions: ChatSession[]
@@ -35,6 +36,7 @@ export default function Sidebar({
   const [creatingProject, setCreatingProject] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const newProjectInputRef = useRef<HTMLInputElement>(null)
+  const [showKnowledge, setShowKnowledge] = useState(false)
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -226,6 +228,37 @@ export default function Sidebar({
           </div>
         )}
 
+        {/* Knowledge panel (collapsible) */}
+        {showKnowledge && (
+          <div
+            className="shrink-0 flex flex-col"
+            style={{
+              height: '52%',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <div
+              className="flex items-center justify-between px-3 py-2 shrink-0"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div className="flex items-center gap-2">
+                <BookSidebarIcon />
+                <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                  Knowledge
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowKnowledge(false)}
+                className="w-5 h-5 flex items-center justify-center rounded hover:bg-[#2A2A40] transition-colors text-[#8888A8] hover:text-white"
+              >
+                <XSmSidebarIcon />
+              </button>
+            </div>
+            <KnowledgePanel />
+          </div>
+        )}
+
         {/* Session list */}
         <nav className="flex-1 overflow-y-auto py-2 space-y-1">
           {/* Projects */}
@@ -325,6 +358,45 @@ export default function Sidebar({
         <div className="shrink-0 px-3 py-3 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
           <button
             type="button"
+            onClick={() => setShowKnowledge((v) => !v)}
+            className={[
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+              showKnowledge
+                ? 'bg-[#2A2A40] text-white'
+                : 'text-[#8888A8] hover:bg-[#222236] hover:text-white',
+            ].join(' ')}
+          >
+            <BookSidebarIcon />
+            Docs
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/memories')}
+            className={[
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+              pathname === '/memories'
+                ? 'bg-[#2A2A40] text-white'
+                : 'text-[#8888A8] hover:bg-[#222236] hover:text-white',
+            ].join(' ')}
+          >
+            <BrainIcon />
+            Memories
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/digest')}
+            className={[
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+              pathname === '/digest'
+                ? 'bg-[#2A2A40] text-white'
+                : 'text-[#8888A8] hover:bg-[#222236] hover:text-white',
+            ].join(' ')}
+          >
+            <DigestIcon />
+            Digest
+          </button>
+                    <button
+            type="button"
             onClick={() => router.push('/usage')}
             className={[
               'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
@@ -337,6 +409,19 @@ export default function Sidebar({
             Usage
           </button>
           <button
+            type="button"
+            onClick={() => router.push('/settings/proactive')}
+            className={[
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+              pathname === '/settings/proactive'
+                ? 'bg-[#2A2A40] text-white'
+                : 'text-[#8888A8] hover:bg-[#222236] hover:text-white',
+            ].join(' ')}
+          >
+            <ScheduleIcon />
+            Proactive
+          </button>
+                    <button
             type="button"
             onClick={() => router.push('/admin')}
             className={[
@@ -488,6 +573,58 @@ function AdminIcon() {
       <line x1="8" y1="10.5" x2="8" y2="14" />
       <line x1="2" y1="8" x2="5.5" y2="8" />
       <line x1="10.5" y1="8" x2="14" y2="8" />
+    </svg>
+  )
+}
+
+function BookSidebarIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 2h5c.9 0 1.7.4 2 1 .3-.6 1.1-1 2-1h3v11h-3c-.9 0-1.7.4-2 1-.3-.6-1.1-1-2-1H2z" />
+      <line x1="9" y1="3" x2="9" y2="13" />
+    </svg>
+  )
+}
+
+function XSmSidebarIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="2" y1="2" x2="8" y2="8" />
+      <line x1="8" y1="2" x2="2" y2="8" />
+    </svg>
+  )
+}
+
+function BrainIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9.5 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z"/>
+      <path d="M14.5 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
+      <path d="M2 9.5A2.5 2.5 0 1 1 7 9.5 2.5 2.5 0 0 1 2 9.5z"/>
+      <path d="M22 9.5A2.5 2.5 0 1 0 17 9.5a2.5 2.5 0 0 0 5 0z"/>
+      <path d="M9.5 17a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
+      <path d="M14.5 17a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z"/>
+      <path d="M12 7v10M7 9.5h10"/>
+    </svg>
+  )
+}
+
+function DigestIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="12" height="12" rx="2"/>
+      <line x1="5" y1="6" x2="11" y2="6"/>
+      <line x1="5" y1="8.5" x2="11" y2="8.5"/>
+      <line x1="5" y1="11" x2="8" y2="11"/>
+    </svg>
+  )
+}
+
+function ScheduleIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="6"/>
+      <polyline points="8,4 8,8 11,10"/>
     </svg>
   )
 }

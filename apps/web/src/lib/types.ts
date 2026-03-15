@@ -6,6 +6,7 @@ export interface ChatMessage {
   content: string
   tier_source?: string
   latency_ms?: number
+  knowledge_used?: boolean
   createdAt: number
 }
 
@@ -64,6 +65,40 @@ export interface AdminQueryResult {
   rows: (string | number | boolean | null)[][]
   row_count: number
   message?: string
+}
+
+// ── API Gateway types ─────────────────────────────────────────────────────────
+
+export interface ApiKeyRecord {
+  id: string
+  name: string
+  key_prefix: string
+  is_active: boolean
+  admin_allowed: boolean
+  rpm_limit: number
+  created_at: string
+  last_used_at?: string
+}
+
+export interface CreatedApiKey extends ApiKeyRecord {
+  key: string // show once only
+}
+
+export interface SystemPromptRecord {
+  id: string
+  name: string
+  content: string
+  is_default: boolean
+  created_at: string
+}
+
+export interface GatewayUsageRow {
+  key_id: string
+  day: string
+  model: string
+  prompt_tokens: number
+  completion_tokens: number
+  cost_usd: number
 }
 
 // ── Usage types ───────────────────────────────────────────────────────────────
