@@ -7,6 +7,7 @@ import '../models/claw_action.dart';
 import '../models/server_config.dart';
 import '../services/action_queue_service.dart';
 import '../services/claw_client.dart';
+import '../services/notification_permission_service.dart';
 import 'action_provider.dart';
 
 /// Keys used in secure storage.
@@ -228,6 +229,12 @@ class ConnectionNotifier extends StateNotifier<ConnectionState> {
     });
 
     await _client.connect(
+      serverUrl: server.url,
+      jwtToken: server.jwtToken,
+    );
+
+    // T-1198: Register FCM push token with the server once connected.
+    NotificationPermissionService.setup(
       serverUrl: server.url,
       jwtToken: server.jwtToken,
     );

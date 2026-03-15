@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/action_provider.dart';
 import '../providers/connection_provider.dart';
+import '../widgets/knowledge_search_sheet.dart';
 import 'action_list_screen.dart';
 import 'chat_screen.dart';
 import 'server_list_screen.dart';
@@ -49,6 +50,15 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: tabs[selectedTab],
+      // T-1145: QuickHelpFAB — visible only when connected to a server
+      floatingActionButton: conn.status == ConnectionStatus.connected
+          ? FloatingActionButton.small(
+              heroTag: 'quick_help_fab',
+              tooltip: 'nSelf knowledge base',
+              onPressed: () => showKnowledgeSearchSheet(context),
+              child: const Icon(Icons.menu_book_rounded),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedTab,
         onDestinationSelected: (index) {

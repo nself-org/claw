@@ -1,14 +1,23 @@
 import 'dart:convert';
 
 import 'package:app_links/app_links.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import 'screens/digest_viewer_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/pairing_screen.dart';
 import 'providers/connection_provider.dart';
 import 'services/deep_link_service.dart';
+import 'services/notification_service.dart';
+
+// Top-level background handler — must be registered before runApp.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) =>
+    firebaseMessagingBackgroundHandler(message);
 
 /// Stores the latest deep-link route received while the app is running.
 ///
@@ -45,7 +54,25 @@ final onboardingNeededProvider = FutureProvider<bool>((ref) async {
   return false;
 });
 
-void main() {
+/// Global navigator key — used by NotificationService for tap-to-navigate.
+final navigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // T-1197: Initialize Firebase + register background handler.
+  // If google-services.json / GoogleService-Info.plist are absent (e.g. CI
+  // builds or users who haven't set up Firebase), this is a no-op and push
+  // notifications are simply unavailable.
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await NotificationService.initialize(navigatorKey: navigatorKey);
+  } catch (e) {
+    // Firebase not configured — push notifications unavailable.
+    debugPrint('[main] Firebase init skipped: $e');
+  }
+
   runApp(const ProviderScope(child: NClawApp()));
 }
 
@@ -89,7 +116,7 @@ class _NClawAppState extends ConsumerState<NClawApp> {
     } else if (uri.host == 'chat') {
       // Switch to the Chat tab (index 0) in HomeScreen.
       ref.read(homeTabProvider.notifier).state = 0;
-    } else if (uri.host == 'usage' || uri.host == 'setup') {
+    } else if (uri.host == 'usage' || uri.host == 'setup' || uri.host == 'digest') {
       // Signal consumers (e.g. HomeScreen) to navigate to the target screen.
       ref.read(deepLinkRouteProvider.notifier).state = uri.host;
     }
@@ -100,6 +127,7 @@ class _NClawAppState extends ConsumerState<NClawApp> {
     final connectionState = ref.watch(connectionProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: '\u014BClaw',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -108,6 +136,9 @@ class _NClawAppState extends ConsumerState<NClawApp> {
         scaffoldBackgroundColor: const Color(0xFF0F0F1A),
         useMaterial3: true,
       ),
+      routes: {
+        DigestViewerScreen.routeName: (_) => const DigestViewerScreen(),
+      },
       // Show pairing screen if no servers are paired.
       // Show home screen once at least one server is configured.
       home: connectionState.hasPairedServers

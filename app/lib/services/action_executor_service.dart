@@ -32,7 +32,7 @@ class ActionExecutorService {
         ActionType.browser      => await _executeBrowser(action),
         ActionType.fileOp       => await _executeFileOp(action),
         ActionType.notification => await _executeNotification(action),
-        ActionType.shell        => _executeShell(action),
+        ActionType.shell        => await _executeShell(action),
         ActionType.oauth        => await _executeOAuth(action),
       };
     } catch (e, st) {
@@ -158,7 +158,31 @@ class ActionExecutorService {
   // Shell (not supported on mobile)
   // ---------------------------------------------------------------------------
 
-  Map<String, dynamic> _executeShell(ClawAction action) {
+  Future<Map<String, dynamic>> _executeShell(ClawAction action) async {
+    await _ensureNotificationsInitialized();
+
+    const androidDetails = AndroidNotificationDetails(
+      'nclaw_actions',
+      'ɳClaw Actions',
+      channelDescription: 'Notifications from ɳClaw action execution',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const darwinDetails = DarwinNotificationDetails();
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+      macOS: darwinDetails,
+    );
+
+    final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await _notifications.show(
+      id,
+      'Action not supported',
+      "Action type 'shell' is not supported on this device.",
+      details,
+    );
+
     return {'error': 'shell execution is not supported on mobile'};
   }
 

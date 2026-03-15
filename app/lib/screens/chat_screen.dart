@@ -7,6 +7,9 @@ import '../providers/connection_provider.dart';
 import '../services/tts_service.dart';
 import '../providers/voice_settings_provider.dart';
 import '../widgets/voice_chat_widget.dart';
+import 'digest_viewer_screen.dart';
+import 'memories_screen.dart';
+import 'proactive_settings_screen.dart';
 import 'thread_list_screen.dart';
 import 'voice_conversation_screen.dart';
 import 'voice_settings_screen.dart';
@@ -217,6 +220,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         title: Text(sessionTitle),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.psychology_outlined),
+            tooltip: 'Memories',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const MemoriesScreen(),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.summarize_outlined),
+            tooltip: 'Daily Digest',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const DigestViewerScreen(),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.schedule_outlined),
+            tooltip: 'Proactive Settings',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const ProactiveSettingsScreen(),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.mic_none_outlined),
             tooltip: 'Voice settings',
@@ -488,6 +518,27 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ],
+            if (!isUser && message.knowledgeUsed) ...[
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.only(left: 36),
+                child: _KnowledgeBadge(),
+              ),
+            ],
+            if (!isUser && message.memoriesUsed > 0) ...[
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.only(left: 36),
+                child: _MemoriesBadge(
+                  count: message.memoriesUsed,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const MemoriesScreen(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -629,6 +680,74 @@ class _TierBadge extends StatelessWidget {
           fontSize: 11,
           color: color,
           fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+/// Small badge shown below assistant messages when the knowledge base was used.
+class _KnowledgeBadge extends StatelessWidget {
+  const _KnowledgeBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: 'Response informed by nSelf knowledge base',
+      child: Chip(
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+        visualDensity: VisualDensity.compact,
+        avatar: Icon(Icons.menu_book_rounded,
+            size: 12, color: cs.primary),
+        side: BorderSide(color: cs.primary.withValues(alpha: 0.4)),
+        backgroundColor: cs.primary.withValues(alpha: 0.08),
+        label: Text(
+          'docs used',
+          style: TextStyle(
+            fontSize: 11,
+            color: cs.primary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small badge shown below assistant messages when memories were injected.
+class _MemoriesBadge extends StatelessWidget {
+  const _MemoriesBadge({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Tooltip(
+        message: 'Tap to view memories',
+        child: Chip(
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+          visualDensity: VisualDensity.compact,
+          avatar: Text('\u{1F9E0}',
+              style: TextStyle(fontSize: 11, color: cs.tertiary)),
+          side: BorderSide(color: cs.tertiary.withValues(alpha: 0.4)),
+          backgroundColor: cs.tertiary.withValues(alpha: 0.08),
+          label: Text(
+            '$count ${count == 1 ? 'memory' : 'memories'} used',
+            style: TextStyle(
+              fontSize: 11,
+              color: cs.tertiary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ),
     );

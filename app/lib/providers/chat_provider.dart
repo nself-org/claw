@@ -19,6 +19,8 @@ class ChatMessage {
   final int? latencyMs;
   final int? inputTokens;
   final int? outputTokens;
+  final bool knowledgeUsed;
+  final int memoriesUsed;
   final DateTime createdAt;
 
   const ChatMessage({
@@ -30,6 +32,8 @@ class ChatMessage {
     this.latencyMs,
     this.inputTokens,
     this.outputTokens,
+    this.knowledgeUsed = false,
+    this.memoriesUsed = 0,
     required this.createdAt,
   });
 
@@ -749,6 +753,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final tierSource = data['tier_source'] as String?;
       final latencyMs = data['latency_ms'] as int?;
       final tokens = data['tokens'] as int?;
+      final knowledgeUsed =
+          (data['suggested_actions'] as List?)?.isNotEmpty ?? false;
+      final memoriesUsed = (data['memories_used'] as int?) ?? 0;
 
       // Promote pending session to server-assigned id.
       String activeId = sessionId;
@@ -772,6 +779,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
           tierSource: tierSource,
           latencyMs: latencyMs,
           outputTokens: tokens,
+          knowledgeUsed: knowledgeUsed,
+          memoriesUsed: memoriesUsed,
           createdAt: DateTime.now(),
         ),
       );
