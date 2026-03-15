@@ -120,24 +120,17 @@ export default function Sidebar({
       {/* Context menu */}
       {contextMenu && (
         <div
-          className="fixed z-50 rounded-lg py-1 shadow-lg text-sm"
-          style={{
-            top: contextMenu.y,
-            left: contextMenu.x,
-            background: 'var(--surface-elevated)',
-            border: '1px solid var(--border)',
-            minWidth: '160px',
-          }}
+          className="fixed z-50 rounded-lg py-1 shadow-lg text-sm bg-[var(--surface-elevated)] border border-[var(--border)] min-w-[160px]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="px-3 py-1.5 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+          <p className="px-3 py-1.5 text-xs font-semibold text-[color:var(--text-muted)]">
             Move to project
           </p>
           <button
             type="button"
             onClick={() => handleAssignToProject(contextMenu.sessionId, undefined)}
-            className="w-full text-left px-3 py-1.5 hover:bg-[#2A2A40] transition-colors"
-            style={{ color: 'var(--text)' }}
+            className="w-full text-left px-3 py-1.5 hover:bg-[#2A2A40] transition-colors text-[color:var(--text)]"
           >
             General
           </button>
@@ -146,8 +139,7 @@ export default function Sidebar({
               type="button"
               key={p.id}
               onClick={() => handleAssignToProject(contextMenu.sessionId, p.id)}
-              className="w-full text-left px-3 py-1.5 hover:bg-[#2A2A40] transition-colors truncate"
-              style={{ color: 'var(--text)' }}
+              className="w-full text-left px-3 py-1.5 hover:bg-[#2A2A40] transition-colors truncate text-[color:var(--text)]"
             >
               {p.name}
             </button>
@@ -161,15 +153,12 @@ export default function Sidebar({
           'fixed inset-y-0 left-0 z-30 flex flex-col w-64',
           'transition-transform duration-200',
           'lg:relative lg:translate-x-0',
+          'bg-[var(--surface)] border-r border-[var(--border)]',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}
-        style={{
-          background: 'var(--surface)',
-          borderRight: '1px solid var(--border)',
-        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between px-4 py-4 shrink-0 border-b border-[var(--border)]">
           <span className="text-xl font-bold text-[#6366F1]">ɳClaw</span>
           <div className="flex items-center gap-1">
             <button
@@ -193,7 +182,7 @@ export default function Sidebar({
 
         {/* New project input */}
         {creatingProject && (
-          <div className="px-3 py-2 shrink-0" style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-elevated)' }}>
+          <div className="px-3 py-2 shrink-0 border-b border-[var(--border)] bg-[var(--surface-elevated)]">
             <input
               ref={newProjectInputRef}
               type="text"
@@ -204,23 +193,20 @@ export default function Sidebar({
                 if (e.key === 'Escape') { setCreatingProject(false); setNewProjectName('') }
               }}
               placeholder="Project name…"
-              className="w-full bg-transparent text-sm outline-none px-2 py-1 rounded"
-              style={{ color: 'var(--text)', border: '1px solid var(--border)' }}
+              className="w-full bg-transparent text-sm outline-none px-2 py-1 rounded text-[color:var(--text)] border border-[var(--border)]"
             />
             <div className="flex gap-2 mt-1.5">
               <button
                 type="button"
                 onClick={handleCreateProject}
-                className="flex-1 text-xs py-1 rounded transition-colors"
-                style={{ background: '#6366F1', color: 'white' }}
+                className="flex-1 text-xs py-1 rounded transition-colors bg-[#6366F1] text-white"
               >
                 Create
               </button>
               <button
                 type="button"
                 onClick={() => { setCreatingProject(false); setNewProjectName('') }}
-                className="flex-1 text-xs py-1 rounded hover:bg-[#2A2A40] transition-colors"
-                style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                className="flex-1 text-xs py-1 rounded hover:bg-[#2A2A40] transition-colors text-[color:var(--text-muted)] border border-[var(--border)]"
               >
                 Cancel
               </button>
@@ -230,25 +216,17 @@ export default function Sidebar({
 
         {/* Knowledge panel (collapsible) */}
         {showKnowledge && (
-          <div
-            className="shrink-0 flex flex-col"
-            style={{
-              height: '52%',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <div
-              className="flex items-center justify-between px-3 py-2 shrink-0"
-              style={{ borderBottom: '1px solid var(--border)' }}
-            >
+          <div className="shrink-0 flex flex-col h-[52%] border-b border-[var(--border)]">
+            <div className="flex items-center justify-between px-3 py-2 shrink-0 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
                 <BookSidebarIcon />
-                <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-xs font-semibold text-[color:var(--text-muted)]">
                   Knowledge
                 </span>
               </div>
               <button
                 type="button"
+                aria-label="Close docs"
                 onClick={() => setShowKnowledge(false)}
                 className="w-5 h-5 flex items-center justify-center rounded hover:bg-[#2A2A40] transition-colors text-[#8888A8] hover:text-white"
               >
@@ -274,18 +252,17 @@ export default function Sidebar({
                 >
                   <ChevronIcon collapsed={isCollapsed} />
                   <FolderIcon />
-                  <span className="flex-1 text-xs font-semibold truncate" style={{ color: 'var(--text-muted)' }}>
+                  <span className="flex-1 text-xs font-semibold truncate text-[color:var(--text-muted)]">
                     {project.name}
                   </span>
-                  <span className="text-xs opacity-60" style={{ color: 'var(--text-muted)' }}>
+                  <span className="text-xs opacity-60 text-[color:var(--text-muted)]">
                     {projectSessions.length}
                   </span>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onNewSessionInProject(project.id) }}
                     title="New chat in project"
-                    className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded hover:bg-[#3A3A50] transition-all"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded hover:bg-[#3A3A50] transition-all text-[color:var(--text-muted)]"
                   >
                     <PlusSmIcon />
                   </button>
@@ -293,8 +270,7 @@ export default function Sidebar({
                     type="button"
                     onClick={(e) => { e.stopPropagation(); handleDeleteProject(project.id) }}
                     title="Delete project"
-                    className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded hover:text-red-400 transition-all"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded hover:text-red-400 transition-all text-[color:var(--text-muted)]"
                   >
                     <TrashIcon />
                   </button>
@@ -304,7 +280,7 @@ export default function Sidebar({
                 {!isCollapsed && (
                   <div className="pl-4">
                     {projectSessions.length === 0 && (
-                      <p className="px-3 py-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <p className="px-3 py-1 text-xs text-[color:var(--text-muted)]">
                         No chats yet
                       </p>
                     )}
@@ -329,7 +305,7 @@ export default function Sidebar({
             <div>
               {projects.length > 0 && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 mx-1">
-                  <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                  <span className="text-xs font-semibold text-[color:var(--text-muted)]">
                     General
                   </span>
                 </div>
@@ -348,14 +324,14 @@ export default function Sidebar({
           )}
 
           {sessions.length === 0 && (
-            <p className="px-4 py-6 text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+            <p className="px-4 py-6 text-xs text-center text-[color:var(--text-muted)]">
               No sessions yet. Start a new chat.
             </p>
           )}
         </nav>
 
         {/* Footer nav */}
-        <div className="shrink-0 px-3 py-3 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="shrink-0 px-3 py-3 space-y-1 border-t border-[var(--border)]">
           <button
             type="button"
             onClick={() => setShowKnowledge((v) => !v)}
@@ -466,18 +442,17 @@ function SessionRow({
     >
       <ChatBubbleIcon className={isActive ? 'text-[#6366F1]' : 'text-[#8888A8]'} />
       <div className="flex-1 min-w-0">
-        <p className="text-sm truncate" style={{ color: isActive ? 'var(--text)' : 'var(--text-muted)' }}>
+        <p className={`text-sm truncate ${isActive ? 'text-[color:var(--text)]' : 'text-[color:var(--text-muted)]'}`}>
           {session.title}
         </p>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs text-[color:var(--text-muted)]">
           {session.message_count} msg{session.message_count !== 1 ? 's' : ''}
         </p>
       </div>
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onDelete(session.id) }}
-        className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:text-red-400 transition-all shrink-0"
-        style={{ color: 'var(--text-muted)' }}
+        className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:text-red-400 transition-all shrink-0 text-[color:var(--text-muted)]"
         title="Delete"
       >
         <TrashIcon />
@@ -529,7 +504,7 @@ function ChevronIcon({ collapsed }: { collapsed: boolean }) {
     <svg
       width="10" height="10" viewBox="0 0 10 10" fill="none"
       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-      style={{ transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}
+      className={`transition-transform duration-150 ${collapsed ? '-rotate-90' : 'rotate-0'}`}
     >
       <polyline points="2,3 5,7 8,3" />
     </svg>

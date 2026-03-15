@@ -119,11 +119,7 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
           type="button"
           onClick={() => setShowSettings((v) => !v)}
           title="Knowledge settings"
-          className="w-6 h-6 flex items-center justify-center rounded transition-colors"
-          style={{
-            color: showSettings ? '#6366F1' : 'var(--text-muted)',
-            background: showSettings ? 'rgba(99,102,241,0.1)' : 'transparent',
-          }}
+          className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${showSettings ? 'text-[#6366F1] bg-indigo-500/10' : 'text-[color:var(--text-muted)] bg-transparent'}`}
         >
           <GearIcon />
         </button>
@@ -132,8 +128,7 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
       {/* Settings panel */}
       {showSettings && (
         <div
-          className="mx-3 mb-2 rounded-lg px-3 py-2.5 space-y-2 shrink-0 text-xs"
-          style={{ background: 'var(--surface-elevated)', border: '1px solid var(--border)' }}
+          className="mx-3 mb-2 rounded-lg px-3 py-2.5 space-y-2 shrink-0 text-xs bg-[var(--surface-elevated)] border border-[var(--border)]"
         >
           <SettingsToggle
             label="Inject knowledge context"
@@ -149,7 +144,7 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
             disabled={!injectKnowledge}
           />
           {version && (
-            <p className="pt-1" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
+            <p className="pt-1 text-[color:var(--text-muted)] opacity-70">
               nSelf v{version.version} · {version.total_chunks} articles · English only
             </p>
           )}
@@ -165,12 +160,7 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search nSelf docs…"
-            className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg outline-none"
-            style={{
-              background: 'var(--surface-elevated)',
-              border: '1px solid var(--border)',
-              color: 'var(--text)',
-            }}
+            className="w-full pl-8 pr-7 py-1.5 text-sm rounded-lg outline-none bg-[var(--surface-elevated)] border border-[var(--border)] text-[color:var(--text)]"
           />
           {loading && (
             <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
@@ -180,6 +170,7 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
           {!loading && query && (
             <button
               type="button"
+              aria-label="Clear search"
               onClick={() => { setQuery(''); setResults([]) }}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8888A8] hover:text-white"
             >
@@ -208,7 +199,7 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
         </div>
       )}
 
-      <div className="shrink-0" style={{ borderTop: '1px solid var(--border)' }} />
+      <div className="shrink-0 border-t border-[var(--border)]" />
 
       {/* Results */}
       <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1.5">
@@ -220,15 +211,15 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
           <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
             <BookIcon className="text-[#8888A8]" size={28} />
             {query ? (
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs text-[color:var(--text-muted)]">
                 No results for &quot;{query}&quot;
               </p>
             ) : (
               <>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-xs text-[color:var(--text-muted)]">
                   Search nSelf documentation
                 </p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+                <p className="text-xs text-[color:var(--text-muted)] opacity-60">
                   CLI commands, plugins, architecture…
                 </p>
               </>
@@ -252,12 +243,9 @@ export default function KnowledgePanel({ isAdmin, onRunCommand }: KnowledgePanel
 
       {/* Footer */}
       {version && (
-        <div
-          className="shrink-0 px-3 py-1.5 flex items-center gap-1.5"
-          style={{ borderTop: '1px solid var(--border)', background: 'var(--surface)' }}
-        >
+        <div className="shrink-0 px-3 py-1.5 flex items-center gap-1.5 border-t border-[var(--border)] bg-[var(--surface)]">
           <InfoIcon className="text-[#8888A8]" />
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <span className="text-xs text-[color:var(--text-muted)]">
             nSelf v{version.version} · {version.total_chunks} articles
           </span>
         </div>
@@ -273,12 +261,7 @@ function CategoryPill({ label, active, onClick }: { label: string; active: boole
     <button
       type="button"
       onClick={onClick}
-      className="shrink-0 px-2 py-0.5 rounded-full text-xs transition-colors"
-      style={{
-        background: active ? '#6366F1' : 'var(--surface-elevated)',
-        color: active ? 'white' : 'var(--text-muted)',
-        border: `1px solid ${active ? '#6366F1' : 'var(--border)'}`,
-      }}
+      className={`shrink-0 px-2 py-0.5 rounded-full text-xs transition-colors border ${active ? 'bg-[#6366F1] text-white border-[#6366F1]' : 'bg-[var(--surface-elevated)] text-[color:var(--text-muted)] border-[var(--border)]'}`}
     >
       {label}
     </button>
@@ -311,33 +294,30 @@ function ChunkCard({
       : chunk.content
 
   return (
-    <div
-      className="rounded-lg cursor-pointer transition-colors"
-      style={{ border: '1px solid var(--border)', background: 'var(--surface-elevated)' }}
-    >
+    <div className="rounded-lg cursor-pointer transition-colors border border-[var(--border)] bg-[var(--surface-elevated)]">
       <div className="px-3 py-2" onClick={onToggle}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text)' }}>
+            <p className="text-xs font-semibold truncate text-[color:var(--text)]">
               {chunk.title}
             </p>
             {chunk.category && (
-              <p className="text-xs" style={{ color: '#6366F1' }}>{chunk.category}</p>
+              <p className="text-xs text-[#6366F1]">{chunk.category}</p>
             )}
           </div>
           <ChevronSmIcon collapsed={!expanded} />
         </div>
-        <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs mt-1 leading-relaxed text-[color:var(--text-muted)]">
           {snippet}
         </p>
       </div>
 
       {expanded && (
-        <div style={{ borderTop: '1px solid var(--border)' }} className="px-3 pb-3 pt-2 space-y-3">
+        <div className="px-3 pb-3 pt-2 space-y-3 border-t border-[var(--border)]">
           {/* Commands */}
           {chunk.commands.length > 0 && (
             <div>
-              <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs font-medium mb-1.5 text-[color:var(--text-muted)]">
                 Commands
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -347,12 +327,7 @@ function ChunkCard({
                       type="button"
                       onClick={() => onCopy(cmd)}
                       title="Copy"
-                      className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono transition-colors"
-                      style={{
-                        background: copied === cmd ? '#22c55e22' : 'var(--surface)',
-                        border: `1px solid ${copied === cmd ? '#22c55e' : 'var(--border)'}`,
-                        color: copied === cmd ? '#22c55e' : 'var(--text)',
-                      }}
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono transition-colors border ${copied === cmd ? 'bg-[#22c55e22] border-[#22c55e] text-[#22c55e]' : 'bg-[var(--surface)] border-[var(--border)] text-[color:var(--text)]'}`}
                     >
                       <TerminalIcon />
                       {cmd}
@@ -362,12 +337,7 @@ function ChunkCard({
                         type="button"
                         onClick={() => onRunCommand(cmd)}
                         title="Insert into chat"
-                        className="px-1.5 py-0.5 rounded text-xs transition-colors"
-                        style={{
-                          background: '#6366F122',
-                          border: '1px solid #6366F144',
-                          color: '#6366F1',
-                        }}
+                        className="px-1.5 py-0.5 rounded text-xs transition-colors bg-[#6366F122] border border-[#6366F144] text-[#6366F1]"
                       >
                         Run
                       </button>
@@ -381,7 +351,7 @@ function ChunkCard({
           {/* Suggested actions */}
           {chunk.suggested_actions.length > 0 && (
             <div>
-              <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs font-medium mb-1.5 text-[color:var(--text-muted)]">
                 Actions
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -390,12 +360,7 @@ function ChunkCard({
                     key={action}
                     type="button"
                     onClick={() => onCopy(action)}
-                    className="px-2 py-0.5 rounded-full text-xs transition-colors"
-                    style={{
-                      background: '#6366F114',
-                      border: '1px solid #6366F133',
-                      color: '#a5b4fc',
-                    }}
+                    className="px-2 py-0.5 rounded-full text-xs transition-colors border bg-[#6366F114] border-[#6366F133] text-[#a5b4fc]"
                   >
                     {action}
                   </button>
@@ -407,14 +372,14 @@ function ChunkCard({
           {/* User notes */}
           {chunk.user_notes.length > 0 && (
             <div>
-              <p className="text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs font-medium mb-1.5 text-[color:var(--text-muted)]">
                 Notes
               </p>
               <div className="space-y-1">
                 {chunk.user_notes.map((note, i) => (
                   <div key={i} className="flex items-start gap-1.5">
                     <NoteIcon />
-                    <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-xs leading-relaxed text-[color:var(--text-muted)]">
                       {note}
                     </p>
                   </div>
@@ -446,22 +411,20 @@ function SettingsToggle({
   return (
     <div className="flex items-start justify-between gap-2">
       <div className={disabled ? 'opacity-40' : ''}>
-        <p className="font-medium" style={{ color: 'var(--text)' }}>{label}</p>
-        <p style={{ color: 'var(--text-muted)' }}>{description}</p>
+        <p className="font-medium text-[color:var(--text)]">{label}</p>
+        <p className="text-[color:var(--text-muted)]">{description}</p>
       </div>
       <button
         type="button"
+        role="switch"
+        aria-label={label}
+        aria-checked={checked && !disabled ? 'true' : 'false'}
         onClick={() => !disabled && onChange(!checked)}
         disabled={disabled}
-        className="shrink-0 w-8 h-4 rounded-full relative transition-colors mt-0.5"
-        style={{ background: checked && !disabled ? '#6366F1' : 'var(--border)' }}
+        className={`shrink-0 w-8 h-4 rounded-full relative transition-colors mt-0.5 ${checked && !disabled ? 'bg-[#6366F1]' : 'bg-[var(--border)]'}`}
       >
         <span
-          className="absolute top-0.5 w-3 h-3 rounded-full transition-transform"
-          style={{
-            background: 'white',
-            left: checked && !disabled ? '18px' : '2px',
-          }}
+          className={`absolute top-0.5 w-3 h-3 rounded-full transition-transform bg-white ${checked && !disabled ? 'left-[18px]' : 'left-[2px]'}`}
         />
       </button>
     </div>
@@ -528,8 +491,7 @@ function ChevronSmIcon({ collapsed }: { collapsed: boolean }) {
     <svg
       width="10" height="10" viewBox="0 0 10 10" fill="none"
       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-      className="shrink-0 mt-0.5 text-[#8888A8]"
-      style={{ transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}
+      className={`shrink-0 mt-0.5 text-[#8888A8] transition-transform duration-150 ${collapsed ? '-rotate-90' : 'rotate-0'}`}
     >
       <polyline points="2,3 5,7 8,3" />
     </svg>

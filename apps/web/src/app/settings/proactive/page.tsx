@@ -188,7 +188,7 @@ function JobCard({ job, onToggle }: { job: ProactiveJob; onToggle: (type: string
         <button
           type="button"
           role="switch"
-          aria-checked={job.enabled}
+          aria-checked={job.enabled ? 'true' : 'false'}
           aria-label={`${job.enabled ? 'Disable' : 'Enable'} ${jobLabel(job.job_type)}`}
           onClick={() => onToggle(job.job_type, !job.enabled)}
           className={`shrink-0 relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#6366F1] focus:ring-offset-2${job.enabled ? ' bg-[#6366F1]' : ' bg-[#2A2A40]'}`}
