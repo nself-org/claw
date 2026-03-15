@@ -11,8 +11,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Should show the pairing screen with server URL input.
-    expect(find.text('Pair with your server'), findsOneWidget);
-    expect(find.text('Connect'), findsOneWidget);
+    // Should show the pairing screen heading and the default Sign in tab.
+    expect(find.text('Connect to your server'), findsOneWidget);
+    expect(find.text('Sign in'), findsWidgets); // tab label + button
   });
 }
