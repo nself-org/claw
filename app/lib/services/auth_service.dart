@@ -155,6 +155,32 @@ class AuthService {
     return '$base$path';
   }
 
+  /// Submit an OAuth authorization code to the nself-claw plugin callback endpoint.
+  ///
+  /// Called by [OAuthScreen] after intercepting the redirect URI from the WebView.
+  /// [service] is the provider name (e.g. 'google', 'anthropic', 'openai').
+  static Future<void> submitOAuthCode({
+    required String serverUrl,
+    required String service,
+    required String code,
+    String? sessionId,
+  }) async {
+    final base = serverUrl.endsWith('/')
+        ? serverUrl.substring(0, serverUrl.length - 1)
+        : serverUrl;
+    final resp = await http.post(
+      Uri.parse('$base/claw/oauth/$service/callback'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'code': code,
+        'session_id': sessionId,
+      }..removeWhere((_, v) => v == null)),
+    );
+    if (resp.statusCode != 200) {
+      throw Exception('OAuth callback failed: ${resp.body}');
+    }
+  }
+
   void dispose() {
     _httpClient.close();
   }
