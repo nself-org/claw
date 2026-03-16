@@ -1,6 +1,7 @@
 import Foundation
 
 /// Processes incoming action dispatches from the nself-claw server.
+/// Server sends action_type values: "file_op", "shell", "clipboard", "screenshot", "browser"
 @MainActor
 final class ActionHandler {
     private let fileService = FileService()
@@ -10,59 +11,57 @@ final class ActionHandler {
     private let browserService = BrowserService()
 
     func handle(_ action: Action) {
-        ClawLogger.info("Handling action: \(action.type) (id: \(action.id))")
+        ClawLogger.info("Handling action: \(action.action_type) (id: \(action.id))")
+        fputs("[nClaw] action: \(action.action_type) id=\(action.id)\n", stderr)
 
-        switch action.type {
-        case .fileRead:
-            handleFileAction(action) { self.fileService.readFile(path: $0) }
-        case .fileWrite:
-            handleFileWriteAction(action)
-        case .fileList:
-            handleFileAction(action) { self.fileService.listDirectory(path: $0) }
-        case .fileDelete:
-            handleFileAction(action) { self.fileService.deleteFile(path: $0) }
-        case .fileMkdir:
-            handleFileAction(action) { self.fileService.makeDirectory(path: $0) }
-        case .shellExec:
-            handleShellAction(action)
-        case .clipboardRead:
-            handleClipboardRead(action)
-        case .clipboardWrite:
-            handleClipboardWrite(action)
-        case .screenshot:
+        switch action.action_type {
+        case "file_op":
+            handleFileOp(action)
+        case "shell":
+            handleShell(action)
+        case "clipboard":
+            handleClipboard(action)
+        case "screenshot":
             handleScreenshot(action)
-        case .browserNavigate, .browserExecute:
-            ClawLogger.info("Browser actions are stubbed in this version")
+        case "browser":
+            ClawLogger.info("Browser actions not yet implemented")
+        default:
+            ClawLogger.error("Unknown action type: \(action.action_type)")
         }
     }
 
-    // MARK: - Private Handlers
+    // MARK: - File Operations
 
-    private func handleFileAction(_ action: Action, operation: (String) -> Result<String, ServiceError>) {
-        guard let path = action.params?["path"] else {
-            ClawLogger.error("File action missing 'path' param")
+    private func handleFileOp(_ action: Action) {
+        guard let path = action.param("path") else {
+            ClawLogger.error("file_op missing 'path' param (id: \(action.id))")
             return
         }
-        let result = operation(path)
-        logResult(action: action, result: result)
+        // Distinguish operation by presence of params:
+        // companion.file_write → {path, content}
+        // companion.file_read  → {path}
+        // companion.file_list  → {path, recursive?}
+        if let content = action.param("content") {
+            let result = fileService.writeFile(path: path, content: content)
+            fputs("[nClaw] file_op write \(path): \(result)\n", stderr)
+            logResult(action: action, result: result)
+        } else if action.params?.keys.contains("recursive") == true {
+            let result = fileService.listDirectory(path: path)
+            logResult(action: action, result: result)
+        } else {
+            let result = fileService.readFile(path: path)
+            logResult(action: action, result: result)
+        }
     }
 
-    private func handleFileWriteAction(_ action: Action) {
-        guard let path = action.params?["path"],
-              let content = action.params?["content"] else {
-            ClawLogger.error("File write action missing 'path' or 'content' param")
-            return
-        }
-        let result = fileService.writeFile(path: path, content: content)
-        logResult(action: action, result: result)
-    }
+    // MARK: - Shell
 
-    private func handleShellAction(_ action: Action) {
-        guard let command = action.params?["command"] else {
-            ClawLogger.error("Shell action missing 'command' param")
+    private func handleShell(_ action: Action) {
+        guard let command = action.param("command") else {
+            ClawLogger.error("shell action missing 'command' param")
             return
         }
-        let workingDir = action.params?["cwd"]
+        let workingDir = action.param("cwd")
         shellService.executeWithApproval(command: command, workingDirectory: workingDir) { result in
             switch result {
             case .success(let output):
@@ -73,19 +72,19 @@ final class ActionHandler {
         }
     }
 
-    private func handleClipboardRead(_ action: Action) {
-        let result = clipboardService.read()
-        logResult(action: action, result: result)
+    // MARK: - Clipboard
+
+    private func handleClipboard(_ action: Action) {
+        if let content = action.param("content") {
+            let result = clipboardService.write(content)
+            logResult(action: action, result: result)
+        } else {
+            let result = clipboardService.read()
+            logResult(action: action, result: result)
+        }
     }
 
-    private func handleClipboardWrite(_ action: Action) {
-        guard let content = action.params?["content"] else {
-            ClawLogger.error("Clipboard write missing 'content' param")
-            return
-        }
-        let result = clipboardService.write(content)
-        logResult(action: action, result: result)
-    }
+    // MARK: - Screenshot
 
     private func handleScreenshot(_ action: Action) {
         Task {
@@ -102,10 +101,10 @@ final class ActionHandler {
     private func logResult(action: Action, result: Result<String, ServiceError>) {
         switch result {
         case .success(let output):
-            ClawLogger.info("Action \(action.id) (\(action.type)) completed")
+            ClawLogger.info("Action \(action.id) (\(action.action_type)) completed")
             ClawLogger.debug("Output: \(output.prefix(500))")
         case .failure(let error):
-            ClawLogger.error("Action \(action.id) (\(action.type)) failed: \(error)")
+            ClawLogger.error("Action \(action.id) (\(action.action_type)) failed: \(error)")
         }
     }
 }

@@ -5,18 +5,13 @@ import Foundation
 final class FileService {
     private let fileManager = FileManager.default
 
-    /// Allowed directories loaded from UserDefaults.
-    /// If empty, defaults to ~/Documents.
+    /// Allowed directories — defaults to the user's home directory.
+    /// Override via UserDefaults key "sandboxPaths" (string array).
     private var allowedPaths: [String] {
-        let raw = UserDefaults.standard.string(forKey: "sandboxPaths") ?? ""
-        let paths = raw.components(separatedBy: "\n")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-
-        if paths.isEmpty {
-            return [NSHomeDirectory() + "/Documents"]
+        if let arr = UserDefaults.standard.stringArray(forKey: "sandboxPaths"), !arr.isEmpty {
+            return arr
         }
-        return paths
+        return [NSHomeDirectory()]
     }
 
     // MARK: - Sandbox Validation

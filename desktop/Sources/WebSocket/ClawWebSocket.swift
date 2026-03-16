@@ -1,23 +1,23 @@
+import Network
 import Foundation
 
 /// WebSocket client to the nself-claw server.
-/// Uses URLSessionWebSocketTask (built-in, no dependencies).
-final class ClawWebSocket: NSObject {
-    private let urlString: String
-    private var task: URLSessionWebSocketTask?
-    private var session: URLSession?
+/// Uses NWConnection + NWProtocolWebSocket (Network.framework) with explicit
+/// HTTP/1.1 ALPN to avoid the HTTP/2 WebSocket (RFC 8441) path that
+/// URLSessionWebSocketTask attempts — Cloudflare returns 301 for that path.
+final class ClawWebSocket {
+    private var connection: NWConnection?
     private var reconnector: Reconnect?
+    private let urlString: String
     private let onStateChange: (ConnectionState) -> Void
     private let onAction: (Action) -> Void
+    private let connectionQueue = DispatchQueue(label: "org.nself.nclaw.ws", qos: .utility)
 
     init(url: String, onStateChange: @escaping (ConnectionState) -> Void, onAction: @escaping (Action) -> Void) {
         self.urlString = url
         self.onStateChange = onStateChange
         self.onAction = onAction
-        super.init()
-        self.reconnector = Reconnect { [weak self] in
-            self?.attemptConnect()
-        }
+        self.reconnector = Reconnect { [weak self] in self?.attemptConnect() }
     }
 
     func connect() {
@@ -26,123 +26,120 @@ final class ClawWebSocket: NSObject {
 
     func disconnect() {
         reconnector?.stop()
-        task?.cancel(with: .goingAway, reason: nil)
-        task = nil
-        session?.invalidateAndCancel()
-        session = nil
+        connection?.cancel()
+        connection = nil
         onStateChange(.disconnected)
     }
 
     func send(_ message: some Encodable) {
-        guard let data = try? JSONEncoder().encode(message),
-              let text = String(data: data, encoding: .utf8) else {
+        guard let data = try? JSONEncoder().encode(message) else {
             ClawLogger.error("Failed to encode WebSocket message")
             return
         }
-        task?.send(.string(text)) { error in
-            if let error = error {
-                ClawLogger.error("WebSocket send error: \(error)")
-            }
-        }
+        let meta = NWProtocolWebSocket.Metadata(opcode: .text)
+        let ctx = NWConnection.ContentContext(identifier: "ws-text", metadata: [meta])
+        connection?.send(content: data, contentContext: ctx, isComplete: true, completion: .idempotent)
     }
 
     // MARK: - Private
 
     private func attemptConnect() {
-        fputs("[nClaw] attemptConnect: \(urlString)\n", stderr)
+        fputs("[nClaw] attemptConnect (NW): \(urlString)\n", stderr)
         guard let url = URL(string: urlString) else {
-            fputs("[nClaw] attemptConnect: INVALID URL\n", stderr)
+            fputs("[nClaw] invalid URL\n", stderr)
             ClawLogger.error("Invalid WebSocket URL: \(urlString)")
             return
         }
 
         onStateChange(.connecting)
 
-        let config = URLSessionConfiguration.default
-        config.waitsForConnectivity = true
-        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        // TLS with explicit http/1.1 ALPN — prevents HTTP/2 negotiation.
+        // Cloudflare returns 301 when URLSessionWebSocketTask tries RFC 8441
+        // WebSocket-over-HTTP/2. Forcing http/1.1 in ALPN guarantees the
+        // standard HTTP/1.1 Upgrade handshake that CF proxies correctly.
+        let tlsOptions = NWProtocolTLS.Options()
+        sec_protocol_options_add_tls_application_protocol(
+            tlsOptions.securityProtocolOptions, "http/1.1"
+        )
 
-        // Build URLRequest with auth header if token exists
-        var request = URLRequest(url: url)
-        if let token = KeychainHelper.load(key: "nclaw-jwt-token") {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let parameters = NWParameters(tls: tlsOptions)
+
+        // WebSocket protocol framing
+        let wsOptions = NWProtocolWebSocket.Options(.version13)
+        wsOptions.autoReplyPing = true
+        parameters.defaultProtocolStack.applicationProtocols.insert(wsOptions, at: 0)
+
+        // NWEndpoint.url carries the full path + query into the WS handshake
+        let conn = NWConnection(to: NWEndpoint.url(url), using: parameters)
+        self.connection = conn
+
+        conn.stateUpdateHandler = { [weak self] state in
+            guard let self else { return }
+            fputs("[nClaw] NW state: \(state)\n", stderr)
+            switch state {
+            case .ready:
+                ClawLogger.info("WebSocket connected")
+                self.reconnector?.reset()
+                self.onStateChange(.connected)
+                let caps = DeviceCapability.current()
+                self.send(caps)
+                self.receiveMessage()
+            case .failed(let error):
+                fputs("[nClaw] NW failed: \(error)\n", stderr)
+                ClawLogger.error("WebSocket connection failed: \(error)")
+                self.connection?.cancel()
+                self.connection = nil
+                self.onStateChange(.disconnected)
+                self.reconnector?.scheduleRetry()
+            case .cancelled:
+                self.onStateChange(.disconnected)
+            default:
+                break
+            }
         }
 
-        task = session?.webSocketTask(with: request)
-        fputs("[nClaw] task created, calling resume\n", stderr)
-        task?.resume()
-        fputs("[nClaw] resume called, starting receiveMessage\n", stderr)
-        receiveMessage()
+        conn.start(queue: connectionQueue)
     }
 
     private func receiveMessage() {
-        task?.receive { [weak self] result in
-            guard let self = self else { return }
+        connection?.receiveMessage { [weak self] data, context, _, error in
+            guard let self else { return }
 
-            switch result {
-            case .success(let message):
-                self.handleMessage(message)
-                self.receiveMessage() // Continue listening
-            case .failure(let error):
-                fputs("[nClaw] WS receive error: \(error)\n", stderr)
+            if let error {
+                fputs("[nClaw] NW receive error: \(error)\n", stderr)
                 ClawLogger.error("WebSocket receive error: \(error)")
-                self.handleDisconnect()
+                self.connection?.cancel()
+                self.connection = nil
+                self.onStateChange(.disconnected)
+                self.reconnector?.scheduleRetry()
+                return
             }
+
+            if let data, !data.isEmpty {
+                self.handleData(data)
+            }
+
+            self.receiveMessage() // Continue listening
         }
     }
 
-    private func handleMessage(_ message: URLSessionWebSocketTask.Message) {
-        let data: Data?
-        switch message {
-        case .string(let text):
-            data = text.data(using: .utf8)
-        case .data(let d):
-            data = d
-        @unknown default:
-            data = nil
-        }
-
-        guard let data = data else { return }
-
+    private func handleData(_ data: Data) {
+        let raw = String(data: data.prefix(500), encoding: .utf8) ?? "<binary>"
+        fputs("[nClaw] raw msg: \(raw)\n", stderr)
         do {
-            let action = try JSONDecoder().decode(Action.self, from: data)
-            onAction(action)
+            let msg = try JSONDecoder().decode(ServerMessage.self, from: data)
+            fputs("[nClaw] server msg type=\(msg.type) payload=\(msg.payload != nil ? "present" : "nil")\n", stderr)
+            if msg.type == "action" {
+                if let action = msg.payload?.action {
+                    fputs("[nClaw] dispatching action \(action.id) type=\(action.action_type)\n", stderr)
+                    onAction(action)
+                } else {
+                    fputs("[nClaw] action msg has nil payload.action — decode failed\n", stderr)
+                }
+            }
         } catch {
-            ClawLogger.error("Failed to decode action: \(error)")
+            fputs("[nClaw] failed to decode server msg: \(raw)\nError: \(error)\n", stderr)
+            ClawLogger.error("Failed to decode server message: \(error)")
         }
-    }
-
-    private func handleDisconnect() {
-        task = nil
-        onStateChange(.disconnected)
-        reconnector?.scheduleRetry()
-    }
-}
-
-// MARK: - URLSessionWebSocketDelegate
-
-extension ClawWebSocket: URLSessionWebSocketDelegate {
-    func urlSession(
-        _ session: URLSession,
-        webSocketTask: URLSessionWebSocketTask,
-        didOpenWithProtocol protocol: String?
-    ) {
-        ClawLogger.info("WebSocket connected")
-        reconnector?.reset()
-        onStateChange(.connected)
-
-        // Send capability report on connect
-        let caps = DeviceCapability.current()
-        send(caps)
-    }
-
-    func urlSession(
-        _ session: URLSession,
-        webSocketTask: URLSessionWebSocketTask,
-        didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
-        reason: Data?
-    ) {
-        ClawLogger.info("WebSocket closed with code: \(closeCode.rawValue)")
-        handleDisconnect()
     }
 }

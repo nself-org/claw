@@ -1,32 +1,33 @@
 import Foundation
 
 /// Capability report sent to the nself-claw server on WebSocket connect.
-/// Tells the server what this daemon can do.
+/// Server expects (ws.rs):
+/// {"type":"capabilities","device_id":"<uuid>","actions":["file_op","shell"],"platform":"macos","version":"1.0"}
 struct DeviceCapability: Codable {
-    let daemon: String
-    let version: String
+    let type: String
+    let device_id: String
+    let actions: [String]
     let platform: String
-    let hostname: String
-    let capabilities: [String]
+    let version: String
 
     static func current() -> DeviceCapability {
         return DeviceCapability(
-            daemon: "nclaw-desktop",
-            version: "0.1.0",
-            platform: "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
-            hostname: Host.current().localizedName ?? ProcessInfo.processInfo.hostName,
-            capabilities: [
-                "file.read",
-                "file.write",
-                "file.list",
-                "file.delete",
-                "file.mkdir",
-                "shell.exec",
-                "clipboard.read",
-                "clipboard.write",
-                "screenshot"
-                // "browser.navigate" and "browser.execute" omitted — not yet implemented
-            ]
+            type: "capabilities",
+            device_id: persistentDeviceId(),
+            actions: ["file_op", "shell", "clipboard", "screenshot"],
+            platform: "macos",
+            version: "1.0"
         )
+    }
+
+    /// Returns a stable UUID for this device, persisted in UserDefaults.
+    private static func persistentDeviceId() -> String {
+        let key = "nclawDeviceId"
+        if let existing = UserDefaults.standard.string(forKey: key) {
+            return existing
+        }
+        let new = UUID().uuidString.lowercased()
+        UserDefaults.standard.set(new, forKey: key)
+        return new
     }
 }
