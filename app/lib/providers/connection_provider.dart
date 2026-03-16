@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/claw_action.dart';
+import '../models/queued_action.dart';
 import '../models/server_config.dart';
+import '../services/action_executor_service.dart';
 import '../services/action_queue_service.dart';
+import '../services/agent_queue_api_client.dart';
 import '../services/claw_client.dart';
 import '../services/notification_permission_service.dart';
 import 'action_provider.dart';
@@ -75,6 +79,8 @@ class ConnectionNotifier extends StateNotifier<ConnectionState> {
   final FlutterSecureStorage _storage;
   final ClawClient _client;
   final ActionQueueService? _actionQueue;
+  final AgentQueueApiClient _agentQueueClient;
+  final ActionExecutorService _executor;
   StreamSubscription<ClawConnectionStatus>? _statusSub;
   StreamSubscription<Map<String, dynamic>>? _actionSub;
 
@@ -82,9 +88,13 @@ class ConnectionNotifier extends StateNotifier<ConnectionState> {
     FlutterSecureStorage? storage,
     ClawClient? client,
     ActionQueueService? actionQueue,
+    AgentQueueApiClient? agentQueueClient,
+    ActionExecutorService? executor,
   })  : _storage = storage ?? const FlutterSecureStorage(),
         _client = client ?? ClawClient(),
         _actionQueue = actionQueue,
+        _agentQueueClient = agentQueueClient ?? AgentQueueApiClient(),
+        _executor = executor ?? ActionExecutorService(),
         super(const ConnectionState()) {
     _listenForActions();
     _loadSaved();
@@ -226,6 +236,10 @@ class ConnectionNotifier extends StateNotifier<ConnectionState> {
       if (mounted) {
         state = state.copyWith(status: uiStatus);
       }
+      // T-0950: Drain server-side agent queue on every (re)connect.
+      if (wsStatus == ClawConnectionStatus.connected) {
+        _drainQueue(server);
+      }
     });
 
     await _client.connect(
@@ -238,6 +252,85 @@ class ConnectionNotifier extends StateNotifier<ConnectionState> {
       serverUrl: server.url,
       jwtToken: server.jwtToken,
     );
+  }
+
+  /// T-0950: Drain the server-side agent queue and process each pending action.
+  ///
+  /// Called on every successful WebSocket connect or reconnect. Fetches all
+  /// pending/dispatched actions for the server's namespace, executes them
+  /// locally, then ACKs each one back to the server.
+  Future<void> _drainQueue(ServerConfig server) async {
+    final namespace = server.id;
+    List<QueuedAction> actions;
+    try {
+      actions = await _agentQueueClient.drainQueue(
+        serverUrl: server.url,
+        namespace: namespace,
+        jwtToken: server.jwtToken,
+      );
+    } catch (e) {
+      debugPrint('[agent_queue] drain failed: $e');
+      return;
+    }
+
+    for (final queuedAction in actions) {
+      if (queuedAction.isExpired) continue;
+      await _processQueuedAction(server, queuedAction);
+    }
+  }
+
+  /// Execute a single queued action and ACK it back to the server.
+  Future<void> _processQueuedAction(
+    ServerConfig server,
+    QueuedAction queuedAction,
+  ) async {
+    Map<String, dynamic> result;
+    switch (queuedAction.action) {
+      case 'oauth_reauth_required':
+        // Defer full OAuth WebView bridge to T-0955.
+        // Show a local notification so the user knows re-auth is needed.
+        final clawAction = ClawAction(
+          id: queuedAction.id,
+          sessionId: '',
+          type: ActionType.notification,
+          params: {
+            'title': 'Re-authentication needed',
+            'body': 'Tap to sign in again and restore access.',
+          },
+          status: ActionStatus.pending,
+          createdAt: queuedAction.createdAt,
+          expiresAt: queuedAction.expiresAt,
+        );
+        result = await _executor.execute(clawAction);
+
+      case 'notification':
+        final clawAction = ClawAction(
+          id: queuedAction.id,
+          sessionId: '',
+          type: ActionType.notification,
+          params: queuedAction.payload,
+          status: ActionStatus.pending,
+          createdAt: queuedAction.createdAt,
+          expiresAt: queuedAction.expiresAt,
+        );
+        result = await _executor.execute(clawAction);
+
+      default:
+        // Unknown action type — acknowledge so it is not re-delivered.
+        debugPrint('[agent_queue] unknown action type: ${queuedAction.action}');
+        result = {'error': 'unknown action: ${queuedAction.action}'};
+    }
+
+    try {
+      await _agentQueueClient.acknowledgeAction(
+        serverUrl: server.url,
+        actionId: queuedAction.id,
+        result: result,
+        jwtToken: server.jwtToken,
+      );
+    } catch (e) {
+      debugPrint('[agent_queue] ack failed for ${queuedAction.id}: $e');
+    }
   }
 
   Future<void> _persist() async {

@@ -12,6 +12,7 @@ struct nClawApp: App {
                 connectionManager: connectionManager,
                 serverManager: serverManager
             )
+            .task { connectionManager.connect() }
         } label: {
             Image(systemName: connectionManager.statusIcon)
                 .symbolRenderingMode(.palette)

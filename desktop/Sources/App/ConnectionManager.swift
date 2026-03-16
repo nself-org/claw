@@ -46,9 +46,19 @@ final class ConnectionManager: ObservableObject {
             serverURL: savedURL,
             port: savedPort > 0 ? savedPort : 7710
         )
+        fputs("[nClaw] init: url=\(savedURL)\n", stderr)
+        // Auto-connect on startup. Use detached task to avoid @MainActor deadlock
+        // during init, then dispatch back to main after the run loop is active.
+        Task.detached { [weak self] in
+            fputs("[nClaw] task.detached: sleeping 1s\n", stderr)
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s — let NSApp finish launching
+            fputs("[nClaw] task.detached: calling connect\n", stderr)
+            await MainActor.run { self?.connect() }
+        }
     }
 
     func connect() {
+        fputs("[nClaw] connect() called, state=\(state.rawValue)\n", stderr)
         guard state == .disconnected else { return }
         state = .connecting
 

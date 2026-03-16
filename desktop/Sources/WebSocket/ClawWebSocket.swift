@@ -49,7 +49,9 @@ final class ClawWebSocket: NSObject {
     // MARK: - Private
 
     private func attemptConnect() {
+        fputs("[nClaw] attemptConnect: \(urlString)\n", stderr)
         guard let url = URL(string: urlString) else {
+            fputs("[nClaw] attemptConnect: INVALID URL\n", stderr)
             ClawLogger.error("Invalid WebSocket URL: \(urlString)")
             return
         }
@@ -67,7 +69,9 @@ final class ClawWebSocket: NSObject {
         }
 
         task = session?.webSocketTask(with: request)
+        fputs("[nClaw] task created, calling resume\n", stderr)
         task?.resume()
+        fputs("[nClaw] resume called, starting receiveMessage\n", stderr)
         receiveMessage()
     }
 
@@ -80,6 +84,7 @@ final class ClawWebSocket: NSObject {
                 self.handleMessage(message)
                 self.receiveMessage() // Continue listening
             case .failure(let error):
+                fputs("[nClaw] WS receive error: \(error)\n", stderr)
                 ClawLogger.error("WebSocket receive error: \(error)")
                 self.handleDisconnect()
             }
