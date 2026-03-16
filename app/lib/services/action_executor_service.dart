@@ -159,6 +159,9 @@ class ActionExecutorService {
   // ---------------------------------------------------------------------------
 
   Future<Map<String, dynamic>> _executeShell(ClawAction action) async {
+    // T-1064: Shell not supported on this platform
+    debugPrint('[ActionExecutor] shell action requested but not supported on this platform');
+
     await _ensureNotificationsInitialized();
 
     const androidDetails = AndroidNotificationDetails(
