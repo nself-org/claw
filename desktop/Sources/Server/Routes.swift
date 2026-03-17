@@ -69,18 +69,38 @@ final class RouteHandler {
         case ("GET", "/terminal"):
             return terminalBufferService.handleGetTerminal(request)
 
-        // Browser automation (CDP)
+        // Browser automation (CDP) — T-1412/T-1413
+        // Unified action endpoint (used by nClaw browser_ tools)
+        case ("GET", "/browser/tabs"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
+            return BrowserEndpoints.handleTabs(request, service: browserService)
+        case ("POST", "/browser/action"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
+            return BrowserEndpoints.handleAction(request, service: browserService)
+        case ("GET", "/browser/cookies"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
+            return BrowserEndpoints.handleCookies(request, service: browserService)
+        case ("POST", "/browser/extract"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
+            return BrowserEndpoints.handleExtract(request, service: browserService)
+        // Legacy browser routes (kept for backwards compat)
         case ("POST", "/browser/open"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
             return BrowserEndpoints.handleOpen(request, service: browserService)
         case ("POST", "/browser/screenshot"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
             return BrowserEndpoints.handleScreenshot(request, service: browserService)
         case ("POST", "/browser/execute"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
             return BrowserEndpoints.handleExecute(request, service: browserService)
         case ("POST", "/browser/fill"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
             return BrowserEndpoints.handleFill(request, service: browserService)
         case ("POST", "/browser/click"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
             return BrowserEndpoints.handleClick(request, service: browserService)
         case ("POST", "/browser/wait"):
+            guard isBrowserEnabled() else { return .error("Browser automation not enabled", status: 403) }
             return BrowserEndpoints.handleWait(request, service: browserService)
 
         // Catch-all
@@ -105,5 +125,10 @@ final class RouteHandler {
     private func handleCapabilities() -> HTTPResponse {
         let caps = DeviceCapability.current()
         return .json(caps)
+    }
+
+    /// T-1413: Check if browser automation has been enabled by the user.
+    private func isBrowserEnabled() -> Bool {
+        return UserDefaults.standard.bool(forKey: "NClaw_BrowserEnabled")
     }
 }

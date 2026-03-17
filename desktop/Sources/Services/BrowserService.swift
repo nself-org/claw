@@ -388,6 +388,64 @@ final class BrowserService {
         }
     }
 
+    /// Extract text content or attribute from elements matching a CSS selector.
+    func extractContent(selector: String?, tabId: String?) -> Result<[[String: Any]], ServiceError> {
+        let sel = selector ?? "body"
+        let escapedSelector = sel.replacingOccurrences(of: "'", with: "\\'")
+
+        let script = """
+        (() => {
+            const els = Array.from(document.querySelectorAll('\(escapedSelector)'));
+            return els.slice(0, 50).map(el => ({
+                tag: el.tagName.toLowerCase(),
+                text: el.innerText ? el.innerText.trim().substring(0, 2000) : '',
+                html: el.innerHTML ? el.innerHTML.substring(0, 2000) : '',
+                href: el.href || null,
+                src: el.src || null
+            }));
+        })()
+        """
+
+        switch executeScript(expression: script, tabId: tabId) {
+        case .failure(let error):
+            return .failure(error)
+        case .success(let result):
+            if let evalResult = result["result"] as? [String: Any],
+               let value = evalResult["value"] as? [[String: Any]] {
+                return .success(value)
+            }
+            return .success([])
+        }
+    }
+
+    /// Get cookies for the current page via Network.getCookies.
+    func getCookies(tabId: String?) -> Result<[[String: Any]], ServiceError> {
+        switch findTabWebSocketURL(tabId: tabId) {
+        case .failure(let error):
+            return .failure(error)
+        case .success(let (wsURL, _)):
+            switch sendCDPCommand(webSocketURL: wsURL, method: "Network.getCookies") {
+            case .failure(let error):
+                return .failure(error)
+            case .success(let result):
+                let cookies = result["cookies"] as? [[String: Any]] ?? []
+                // Strip secure values — return name, domain, path, expires only
+                let safe = cookies.map { cookie -> [String: Any] in
+                    var out: [String: Any] = [
+                        "name": cookie["name"] ?? "",
+                        "domain": cookie["domain"] ?? "",
+                        "path": cookie["path"] ?? "/"
+                    ]
+                    if let expires = cookie["expires"] { out["expires"] = expires }
+                    if let httpOnly = cookie["httpOnly"] { out["httpOnly"] = httpOnly }
+                    if let secure = cookie["secure"] { out["secure"] = secure }
+                    return out
+                }
+                return .success(safe)
+            }
+        }
+    }
+
     /// Wait for an element or URL with timeout.
     func waitFor(selector: String?, url: String?, timeout: TimeInterval) -> Result<Bool, ServiceError> {
         // Need a tab to poll against

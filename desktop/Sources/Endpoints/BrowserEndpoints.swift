@@ -93,6 +93,143 @@ enum BrowserEndpoints {
         }
     }
 
+    // MARK: - GET /browser/tabs
+
+    static func handleTabs(_ request: HTTPRequest, service: BrowserService) -> HTTPResponse {
+        switch service.listTabs() {
+        case .success(let tabs):
+            let simplified = tabs.filter { ($0["type"] as? String) == "page" }
+                .map { tab -> [String: Any] in
+                    var out: [String: Any] = [:]
+                    if let id = tab["id"] { out["id"] = id }
+                    if let title = tab["title"] { out["title"] = title }
+                    if let url = tab["url"] { out["url"] = url }
+                    return out
+                }
+            return .json(["tabs": simplified])
+        case .failure(let error):
+            return .error(error.localizedDescription, status: error.httpStatus)
+        }
+    }
+
+    // MARK: - GET /browser/cookies
+
+    static func handleCookies(_ request: HTTPRequest, service: BrowserService) -> HTTPResponse {
+        let params = request.jsonBody(as: ScreenshotRequest.self)
+        switch service.getCookies(tabId: params?.tabId) {
+        case .success(let cookies):
+            return .json(["cookies": cookies])
+        case .failure(let error):
+            return .error(error.localizedDescription, status: error.httpStatus)
+        }
+    }
+
+    // MARK: - POST /browser/extract
+
+    struct ExtractRequest: Decodable {
+        let selector: String?
+        let tabId: String?
+    }
+
+    static func handleExtract(_ request: HTTPRequest, service: BrowserService) -> HTTPResponse {
+        let params = request.jsonBody(as: ExtractRequest.self)
+        switch service.extractContent(selector: params?.selector, tabId: params?.tabId) {
+        case .success(let elements):
+            return .json(["elements": elements])
+        case .failure(let error):
+            return .error(error.localizedDescription, status: error.httpStatus)
+        }
+    }
+
+    // MARK: - POST /browser/action (unified dispatcher)
+
+    struct ActionRequest: Decodable {
+        let action: String
+        let url: String?
+        let selector: String?
+        let value: String?
+        let expression: String?
+        let tabId: String?
+        let timeout: Double?
+    }
+
+    static func handleAction(_ request: HTTPRequest, service: BrowserService) -> HTTPResponse {
+        guard let params = request.jsonBody(as: ActionRequest.self) else {
+            return .error("Missing 'action' in request body")
+        }
+
+        switch params.action {
+        case "navigate":
+            guard let urlStr = params.url else { return .error("Missing 'url'") }
+            switch service.navigateToURL(urlStr) {
+            case .success(let tabId):
+                return .json(["success": true, "tabId": tabId])
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "click":
+            guard let sel = params.selector else { return .error("Missing 'selector'") }
+            switch service.clickElement(selector: sel, tabId: params.tabId) {
+            case .success:
+                return .json(SuccessResponse(success: true))
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "type":
+            guard let sel = params.selector, let val = params.value else {
+                return .error("Missing 'selector' or 'value'")
+            }
+            switch service.fillField(selector: sel, value: val, tabId: params.tabId) {
+            case .success:
+                return .json(SuccessResponse(success: true))
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "extract":
+            switch service.extractContent(selector: params.selector, tabId: params.tabId) {
+            case .success(let elements):
+                return .json(["elements": elements])
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "screenshot":
+            switch service.captureScreenshot(tabId: params.tabId) {
+            case .success(let data):
+                return .json(["image": data])
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "wait_for":
+            let timeout = params.timeout ?? 10.0
+            switch service.waitFor(selector: params.selector, url: params.url, timeout: timeout) {
+            case .success(let found):
+                return .json(["found": found])
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "evaluate":
+            guard let expr = params.expression else { return .error("Missing 'expression'") }
+            switch service.executeScript(expression: expr, tabId: params.tabId) {
+            case .success(let result):
+                let evalResult = result["result"] as? [String: Any] ?? [:]
+                let value = evalResult["value"]
+                let exceptionDetails = (result["exceptionDetails"] as? [String: Any])?["text"] as? String
+                return .json(ExecuteResponse(result: JSONValue(value), exceptionDetails: exceptionDetails))
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        case "get_cookies":
+            switch service.getCookies(tabId: params.tabId) {
+            case .success(let cookies):
+                return .json(["cookies": cookies])
+            case .failure(let e):
+                return .error(e.localizedDescription, status: e.httpStatus)
+            }
+        default:
+            return .error("Unknown action '\(params.action)'", status: 400)
+        }
+    }
+
     // MARK: - POST /browser/fill
 
     struct FillRequest: Decodable {
