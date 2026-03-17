@@ -88,4 +88,13 @@ final class ConnectionManager: ObservableObject {
         actionHandler = nil
         state = .disconnected
     }
+
+    /// Called after onboarding completes. Reloads the saved server URL
+    /// from UserDefaults and opens a fresh WebSocket connection.
+    func reconnectWithSavedCredentials() {
+        disconnect()
+        let savedURL = UserDefaults.standard.string(forKey: "serverURL") ?? config.serverURL
+        config = ServerConfig(serverURL: savedURL, port: config.port)
+        connect()
+    }
 }
