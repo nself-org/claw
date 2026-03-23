@@ -1,6 +1,8 @@
 package org.nself.nclaw.data
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -13,10 +15,12 @@ import org.json.JSONObject
 import org.nself.nclaw.NClaw
 import java.util.UUID
 
-class ClawClient(private val context: Context) {
+class ClawClient(context: Context) {
+
+    private val appContext = context.applicationContext
 
     private val prefs by lazy {
-        context.getSharedPreferences("nclaw_settings", Context.MODE_PRIVATE)
+        appContext.getSharedPreferences("nclaw_settings", Context.MODE_PRIVATE)
     }
 
     var serverURL: String
@@ -33,13 +37,38 @@ class ClawClient(private val context: Context) {
 
     private var webSocket: WebSocket? = null
     private val httpClient = OkHttpClient()
-    private val deviceId = UUID.randomUUID().toString()
+    private val reconnectHandler = Handler(Looper.getMainLooper())
+    private var reconnectDelay = RECONNECT_INITIAL_DELAY
+    private var shouldReconnect = true
+
+    private val userId: String
+        get() {
+            var id = prefs.getString(PREF_USER_ID, null)
+            if (id == null) {
+                id = UUID.randomUUID().toString()
+                prefs.edit().putString(PREF_USER_ID, id).apply()
+            }
+            return id
+        }
+
+    private val deviceId: String
+        get() {
+            var id = prefs.getString(PREF_DEVICE_ID, null)
+            if (id == null) {
+                id = UUID.randomUUID().toString()
+                prefs.edit().putString(PREF_DEVICE_ID, id).apply()
+            }
+            return id
+        }
 
     private fun connectWebSocketIfNeeded() {
         val baseURL = serverURL.trimEnd('/')
         if (baseURL.isBlank()) return
 
-        val wsUrl = "$baseURL/claw/ws?user_id=android_user&last_seq=0".replace("http", "ws")
+        shouldReconnect = true
+        reconnectDelay = RECONNECT_INITIAL_DELAY
+
+        val wsUrl = "$baseURL/claw/ws?user_id=$userId&last_seq=0".replace("http", "ws")
         val request = Request.Builder()
             .url(wsUrl)
             .addHeader("Authorization", apiKey)
@@ -48,6 +77,7 @@ class ClawClient(private val context: Context) {
         webSocket = httpClient.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 println("WebSocket connected")
+                reconnectDelay = RECONNECT_INITIAL_DELAY
                 registerCapabilities(webSocket)
             }
 
@@ -57,12 +87,23 @@ class ClawClient(private val context: Context) {
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 println("WebSocket disconnected")
+                reconnectWithBackoff()
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 println("WebSocket error: ${t.message}")
+                reconnectWithBackoff()
             }
         })
+    }
+
+    private fun reconnectWithBackoff() {
+        if (!shouldReconnect) return
+        println("WebSocket reconnecting in ${reconnectDelay}ms")
+        reconnectHandler.postDelayed({
+            connectWebSocketIfNeeded()
+        }, reconnectDelay)
+        reconnectDelay = (reconnectDelay * 2).coerceAtMost(RECONNECT_MAX_DELAY)
     }
 
     private fun registerCapabilities(webSocket: WebSocket) {
@@ -104,6 +145,22 @@ class ClawClient(private val context: Context) {
         } catch (e: Exception) {
             throw ClawException("Server error: ${e.message}")
         }
+    }
+
+    fun disconnect() {
+        shouldReconnect = false
+        reconnectHandler.removeCallbacksAndMessages(null)
+        webSocket?.close(1000, "Client disconnect")
+        webSocket = null
+        clawInstance?.disconnect()
+        clawInstance = null
+    }
+
+    companion object {
+        private const val PREF_USER_ID = "nclaw_user_id"
+        private const val PREF_DEVICE_ID = "nclaw_device_id"
+        private const val RECONNECT_INITIAL_DELAY = 1000L
+        private const val RECONNECT_MAX_DELAY = 30000L
     }
 }
 
