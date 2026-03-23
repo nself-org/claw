@@ -1,0 +1,69 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicklasxyz/tauri/main/crates/tauri-config-schema/schema.json",
+  "productName": "nSelf Companion",
+  "version": "0.1.0",
+  "identifier": "org.nself.companion",
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "nSelf Companion",
+        "visible": false,
+        "width": 400,
+        "height": 600,
+        "resizable": false,
+        "decorations": true
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "tooltip": "nSelf Companion"
+    },
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' wss: https:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
+  },
+  "plugins": {
+    "notification": {
+      "enabled": true
+    },
+    "dialog": {
+      "enabled": true
+    },
+    "fs": {
+      "enabled": true,
+      "scope": {
+        "allow": [
+          "$HOME/.claude/inbox/**",
+          "$HOME/Sites/*/.claude/inbox/**",
+          "$HOME/.nself-companion/**",
+          "$HOME/.config/gog/tokens/**"
+        ],
+        "deny": [
+          "$HOME/.ssh/**",
+          "$HOME/.gnupg/**"
+        ]
+      }
+    }
+  }
+}

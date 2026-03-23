@@ -41,6 +41,11 @@ class ClawClient(context: Context) {
     private var reconnectDelay = RECONNECT_INITIAL_DELAY
     private var shouldReconnect = true
 
+    // T-2178: Sensor streaming state
+    private var sensorStreamingEnabled = false
+    private val sensorHandler = Handler(Looper.getMainLooper())
+    private var sensorRunnable: Runnable? = null
+
     private val userId: String
         get() {
             var id = prefs.getString(PREF_USER_ID, null)
@@ -112,7 +117,7 @@ class ClawClient(context: Context) {
             put("device_id", deviceId)
             put("platform", "android")
             put("version", "1.0")
-            put("actions", JSONArray(listOf("clipboard_read", "clipboard_write", "location")))
+            put("actions", JSONArray(listOf("clipboard_read", "clipboard_write", "location", "sensor_streaming")))
         }
         webSocket.send(payload.toString())
     }
@@ -147,7 +152,150 @@ class ClawClient(context: Context) {
         }
     }
 
+    // =========================================================================
+    // T-2178: Sensor streaming scaffold
+    // =========================================================================
+
+    /**
+     * Start streaming mobile sensor data to the server.
+     * Reports battery level, GPS coordinates, and activity detection
+     * at the configured interval. Data is sent as interactions with
+     * channel="mobile_sensor" to np_claw_interactions.
+     *
+     * @param intervalMs reporting interval in milliseconds (default 60000 = 1 min)
+     */
+    fun startSensorStreaming(intervalMs: Long = SENSOR_DEFAULT_INTERVAL) {
+        if (sensorStreamingEnabled) return
+        sensorStreamingEnabled = true
+
+        sensorRunnable = object : Runnable {
+            override fun run() {
+                if (!sensorStreamingEnabled) return
+                sendSensorReport()
+                sensorHandler.postDelayed(this, intervalMs)
+            }
+        }
+        sensorHandler.post(sensorRunnable!!)
+        println("Sensor streaming started (interval=${intervalMs}ms)")
+    }
+
+    /**
+     * Stop sensor streaming.
+     */
+    fun stopSensorStreaming() {
+        sensorStreamingEnabled = false
+        sensorRunnable?.let { sensorHandler.removeCallbacks(it) }
+        sensorRunnable = null
+        println("Sensor streaming stopped")
+    }
+
+    /**
+     * Collect current sensor data and send as a WebSocket message.
+     * Uses channel="mobile_sensor" for server-side routing to
+     * np_claw_interactions table.
+     */
+    private fun sendSensorReport() {
+        val ws = webSocket ?: return
+
+        val sensorData = JSONObject().apply {
+            put("type", "sensor_report")
+            put("channel", "mobile_sensor")
+            put("device_id", deviceId)
+            put("user_id", userId)
+            put("timestamp", System.currentTimeMillis())
+
+            // Battery level
+            put("battery", collectBatteryData())
+
+            // GPS location (last known)
+            put("location", collectLocationData())
+
+            // Activity detection (stationary, walking, driving, etc.)
+            put("activity", collectActivityData())
+        }
+
+        ws.send(sensorData.toString())
+    }
+
+    /**
+     * Collect battery level and charging state.
+     * Requires no special permissions on Android.
+     */
+    private fun collectBatteryData(): JSONObject {
+        val batteryManager = appContext.getSystemService(Context.BATTERY_SERVICE)
+        return JSONObject().apply {
+            // BatteryManager requires API 21+ (we target 24+)
+            if (batteryManager is android.os.BatteryManager) {
+                put("level", batteryManager.getIntProperty(
+                    android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY
+                ))
+                put("charging", batteryManager.isCharging)
+            } else {
+                put("level", -1)
+                put("charging", false)
+            }
+        }
+    }
+
+    /**
+     * Collect last known GPS coordinates.
+     * Returns empty coordinates if location permission is not granted.
+     * The caller (Activity/Service) is responsible for requesting
+     * ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION permission.
+     */
+    private fun collectLocationData(): JSONObject {
+        return JSONObject().apply {
+            // Location requires runtime permission check.
+            // Return placeholder if not available; the UI layer handles permission.
+            try {
+                val locationManager = appContext.getSystemService(Context.LOCATION_SERVICE)
+                        as? android.location.LocationManager
+                if (locationManager != null &&
+                    appContext.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    val lastLocation = locationManager.getLastKnownLocation(
+                        android.location.LocationManager.FUSED_PROVIDER
+                    ) ?: locationManager.getLastKnownLocation(
+                        android.location.LocationManager.GPS_PROVIDER
+                    )
+                    if (lastLocation != null) {
+                        put("latitude", lastLocation.latitude)
+                        put("longitude", lastLocation.longitude)
+                        put("accuracy_m", lastLocation.accuracy)
+                        put("timestamp", lastLocation.time)
+                    } else {
+                        put("available", false)
+                    }
+                } else {
+                    put("available", false)
+                    put("reason", "permission_not_granted")
+                }
+            } catch (e: SecurityException) {
+                put("available", false)
+                put("reason", "security_exception")
+            }
+        }
+    }
+
+    /**
+     * Collect user activity detection state.
+     * Scaffold: returns "unknown" until Google Activity Recognition
+     * API is integrated (requires play-services-location dependency).
+     */
+    private fun collectActivityData(): JSONObject {
+        // Activity Recognition API requires play-services-location.
+        // This is a scaffold that returns the detected activity type
+        // once the dependency and permission are added.
+        return JSONObject().apply {
+            put("type", "unknown")
+            put("confidence", 0)
+            put("note", "Activity Recognition API integration pending")
+        }
+    }
+
     fun disconnect() {
+        stopSensorStreaming()
         shouldReconnect = false
         reconnectHandler.removeCallbacksAndMessages(null)
         webSocket?.close(1000, "Client disconnect")
@@ -161,6 +309,7 @@ class ClawClient(context: Context) {
         private const val PREF_DEVICE_ID = "nclaw_device_id"
         private const val RECONNECT_INITIAL_DELAY = 1000L
         private const val RECONNECT_MAX_DELAY = 30000L
+        private const val SENSOR_DEFAULT_INTERVAL = 60_000L
     }
 }
 
