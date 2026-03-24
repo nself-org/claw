@@ -17,7 +17,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   final comparator = goldenFileComparator as LocalFileComparator;
-  goldenFileComparator = _ThresholdComparator(comparator.basedir);
+  // comparator.basedir is already a directory URI (e.g. .../test/golden/).
+  // LocalFileComparator(testUri) does dirname(testUri) internally, so passing
+  // a directory URI strips one level up to .../test/ — wrong.
+  // Fix: resolve a filename inside basedir so dirname lands back in basedir.
+  goldenFileComparator = _ThresholdComparator(
+    comparator.basedir.resolve('flutter_test_config.dart'),
+  );
   await testMain();
 }
 
