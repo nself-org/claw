@@ -6,15 +6,116 @@ All notable changes to nClaw clients are documented here.
 
 ## v1.0.0 — 2026-03-29
 
-First stable release. Marks nClaw as production-ready alongside the nSelf CLI v1.0.0 LTS launch.
+First stable release. Production-ready alongside nSelf CLI v1.0.0 LTS. All core features are complete and tested across all four platforms (iOS, Android, macOS, web).
+
+### AI Chat
+
+- Multi-turn conversations with full context management and streaming responses
+- Conversation branching — fork any message into a sub-thread with breadcrumb navigation
+- Message editing and regeneration
+- Automatic context window management — older messages are summarized and compressed near the token limit
+- Server-side session persistence via `np_claw_sessions`; thread list with tags, project grouping, and full-text search
+
+### Memory and Context
+
+- Persistent memory across sessions — the AI remembers user preferences, prior interactions, and stated facts
+- Memory entries viewable, editable, and deletable from the Memories UI on all platforms
+- Context injection — pin knowledge entries to include in every conversation
+- Proactive memory suggestions surface relevant past context automatically
+
+### Tool Calls
+
+- AI can invoke tools and chain multiple calls in a single turn; results are fed back automatically
+- **Web search** — search the web and retrieve structured results
+- **File read/write** — read and write files on the backend host
+- **Code execution** — run code in a sandboxed environment
+- **Shell commands** — execute commands on the backend host (with user approval)
+- **Browser automation** — control a real Chrome browser via `nself-browser` (Chrome DevTools Protocol)
+- **Calendar/email** — connect to external services via `nself-mux`
+- Agent queue protocol — actions queued offline and dispatched on reconnect; `libnclaw` protocol and types v2
+
+### Personas
+
+- Custom AI personas with defined names, avatars, system prompts, and behavior rules
+- Per-persona model selection, topic scope restrictions, and communication style preferences
+- Personas can be shared with other users on the same backend instance
+
+### Proactive Intelligence
+
+- Background agents that monitor events and act without being explicitly asked
+- **Scheduled tasks** — run prompts or workflows on a cron-style schedule
+- **Event triggers** — react to file changes, calendar events, and incoming messages
+- **Digest generation** — periodic summaries of monitored feeds
+- **Alerts** — notify when defined conditions are met (push notification via `nself-notify`)
+
+### Voice
+
+- Speech-to-text input via `nself-voice` Pro plugin — real-time transcription displayed as you speak
+- Text-to-speech playback with configurable speed and voice selection; per-message play button
+- Continuous voice conversation mode — full-screen hands-free loop with silence detection
+- Web client voice input via Web Speech API — hold-to-speak mic button
+- `VoiceSettingsScreen` — STT/TTS configuration persisted locally and synced to the backend
+
+### Browser Automation
+
+- AI-driven browser control via `nself-browser` Pro plugin (Chrome DevTools Protocol)
+- Navigate URLs, click elements, fill forms, capture screenshots, execute JavaScript
+- Visual reasoning — AI interprets screenshots to make decisions during automated workflows
+- Browser consent UI — user approves automation session before any CDP connection is opened
+
+### Multi-Modal Input
+
+- **Images** — camera capture or photo library; AI describes and reasons over images
+- **Files** — PDFs, documents, and source files attached as conversation context
+- **Audio** — voice notes transcribed before sending (distinct from live voice mode)
+
+### Desktop Companion (Tauri)
+
+- macOS menu bar daemon — background process for ambient context capture and server pairing
+- First-run onboarding flow with guided server pairing
+- OS control and sensor streaming (clipboard, screen, input events)
+- Chrome CDP module with full browser automation routes
+- JWT authentication with macOS Keychain credential storage
+- Sign in with Apple and Sign in with Google via native OAuth window
+- WebSocket transport upgraded to `NWConnection` for HTTP/1.1 ALPN compatibility
+
+### E2E Encryption
+
+- Optional end-to-end encryption via `libnclaw`
+- X25519 Diffie-Hellman key exchange; XChaCha20-Poly1305 authenticated encryption
+- Message content encrypted on-device before reaching the backend — server stores only ciphertext
+- Keys stored in platform keychain: iOS Keychain, Android Keystore, macOS Keychain
+
+### Platform Support
+
+- **Flutter app** (`app/`) — single codebase targeting iOS 16+, Android 10+ (API 29+), macOS 12+, and web
+- **SwiftUI native client** (`apps/ios/`) — iOS and macOS via Mac Catalyst
+- **Kotlin native client** (`apps/android/`) — Jetpack Compose, Android 10+
+- **Tauri desktop companion** (`apps/desktop/`) — macOS daemon for ambient context and browser automation
+- **Web client** — full nClaw web app served from `plugins-pro/claw-web` (moved from `apps/web/` in v0.9.9)
+
+### libnclaw (Rust FFI)
+
+- Single source of truth for all shared types, protocol definitions, and encryption
+- FFI bindings generated for Dart (`dart:ffi`), Swift (`@_cdecl` C ABI), and Kotlin (JNI)
+- Agent queue protocol types and offline action serialization
+- E2E encryption primitives: X25519 key generation, XChaCha20-Poly1305 encrypt/decrypt
+
+### CI / Release
+
+- `build-release.yml` — produces Flutter APK, macOS DMG, and GitHub Release artifacts
+- CI matrix covering iOS simulator, Android emulator, macOS, and web builds
+- Golden test comparator with 1% pixel-diff threshold for cross-platform rendering tolerance
 
 ### Documentation
-- Created `.github/wiki/` with full documentation suite (architecture, API, setup guides)
+
+- `.github/wiki/` with full documentation suite: Architecture, Features, Getting Started, Contributing, Changelog
 - Expanded README with architecture overview, quickstart, and feature matrix
-- Added PR template, CONTRIBUTING guide, and SECURITY policy
-- Expanded backend self-hosting guide
+- PR template, CONTRIBUTING guide, and SECURITY policy
+- Backend self-hosting guide with environment variable reference and plugin setup walkthrough
 
 ### Bug Fixes
+
 - Fixed `dependencyResolutionManagement` block in Android Gradle for compatibility with newer Gradle versions
 
 ---

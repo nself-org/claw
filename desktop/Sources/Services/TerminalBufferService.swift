@@ -85,7 +85,11 @@ PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__nclaw_capture_output"
         let count = 500
         switch readLastLines(count) {
         case .success(let lines):
-            return .json(["lines": lines, "count": lines.count])
+            struct TerminalResponse: Encodable {
+                let lines: [String]
+                let count: Int
+            }
+            return .json(TerminalResponse(lines: lines, count: lines.count))
         case .failure(let error):
             return .error(error.localizedDescription, status: error.httpStatus)
         }

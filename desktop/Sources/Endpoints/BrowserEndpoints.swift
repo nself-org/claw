@@ -106,7 +106,10 @@ enum BrowserEndpoints {
                     if let url = tab["url"] { out["url"] = url }
                     return out
                 }
-            return .json(["tabs": simplified])
+            struct TabsResponse: Encodable {
+                let tabs: [JSONValue]
+            }
+            return .json(TabsResponse(tabs: simplified.map { JSONValue($0) }))
         case .failure(let error):
             return .error(error.localizedDescription, status: error.httpStatus)
         }
@@ -118,7 +121,10 @@ enum BrowserEndpoints {
         let params = request.jsonBody(as: ScreenshotRequest.self)
         switch service.getCookies(tabId: params?.tabId) {
         case .success(let cookies):
-            return .json(["cookies": cookies])
+            struct CookiesResponse: Encodable {
+                let cookies: [JSONValue]
+            }
+            return .json(CookiesResponse(cookies: cookies.map { JSONValue($0) }))
         case .failure(let error):
             return .error(error.localizedDescription, status: error.httpStatus)
         }
@@ -135,7 +141,10 @@ enum BrowserEndpoints {
         let params = request.jsonBody(as: ExtractRequest.self)
         switch service.extractContent(selector: params?.selector, tabId: params?.tabId) {
         case .success(let elements):
-            return .json(["elements": elements])
+            struct ElementsResponse: Encodable {
+                let elements: [JSONValue]
+            }
+            return .json(ElementsResponse(elements: elements.map { JSONValue($0) }))
         case .failure(let error):
             return .error(error.localizedDescription, status: error.httpStatus)
         }
@@ -163,7 +172,7 @@ enum BrowserEndpoints {
             guard let urlStr = params.url else { return .error("Missing 'url'") }
             switch service.navigateToURL(urlStr) {
             case .success(let tabId):
-                return .json(["success": true, "tabId": tabId])
+                return .json(OpenResponse(success: true, tabId: tabId))
             case .failure(let e):
                 return .error(e.localizedDescription, status: e.httpStatus)
             }
@@ -188,7 +197,10 @@ enum BrowserEndpoints {
         case "extract":
             switch service.extractContent(selector: params.selector, tabId: params.tabId) {
             case .success(let elements):
-                return .json(["elements": elements])
+                struct ElementsResponse: Encodable {
+                    let elements: [JSONValue]
+                }
+                return .json(ElementsResponse(elements: elements.map { JSONValue($0) }))
             case .failure(let e):
                 return .error(e.localizedDescription, status: e.httpStatus)
             }
@@ -221,7 +233,10 @@ enum BrowserEndpoints {
         case "get_cookies":
             switch service.getCookies(tabId: params.tabId) {
             case .success(let cookies):
-                return .json(["cookies": cookies])
+                struct CookiesResponse: Encodable {
+                    let cookies: [JSONValue]
+                }
+                return .json(CookiesResponse(cookies: cookies.map { JSONValue($0) }))
             case .failure(let e):
                 return .error(e.localizedDescription, status: e.httpStatus)
             }

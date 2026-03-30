@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 /// Capability report sent to the nself-claw server on WebSocket connect.
