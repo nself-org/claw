@@ -33,7 +33,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('\u014BClaw'),
+        title: const Text('\u0273Claw'),
         actions: [
           // Disconnect from active server.
           IconButton(

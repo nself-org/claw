@@ -8,7 +8,7 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack {
-                Text("\u{0266}Claw")
+                Text("\u{0273}Claw")
                     .font(.headline)
                 Spacer()
                 statusBadge
@@ -72,7 +72,7 @@ struct MenuBarView: View {
 
             Divider()
 
-            Button("Quit \u{0266}Claw") {
+            Button("Quit \u{0273}Claw") {
                 NSApplication.shared.terminate(nil)
             }
             .buttonStyle(.plain)

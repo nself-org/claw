@@ -30,7 +30,7 @@ struct nClawApp: App {
 
         // Onboarding window — shown on first launch when no JWT is found.
         // Displayed as a floating panel via openWindow(id:) from AppDelegate.
-        WindowGroup("Setup \u{0266}Claw", id: "onboarding") {
+        WindowGroup("Setup \u{0273}Claw", id: "onboarding") {
             OnboardingView {
                 // Dismiss the onboarding window and reconnect with the new credentials.
                 NSApplication.shared.windows
@@ -150,7 +150,7 @@ final class OnboardingWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Setup \u{0266}Claw"
+        window.title = "Setup \u{0273}Claw"
         window.center()
         window.isReleasedWhenClosed = false
 

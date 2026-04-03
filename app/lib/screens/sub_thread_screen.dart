@@ -34,7 +34,7 @@ class SubThreadScreen extends ConsumerWidget {
             .firstOrNull
         : null;
 
-    final branchTitle = branchSession?.displayTitle ?? '\u014BClaw Branch';
+    final branchTitle = branchSession?.displayTitle ?? '\u0273Claw Branch';
     final parentTitle = parentSession?.displayTitle ?? 'Parent Thread';
 
     return Column(

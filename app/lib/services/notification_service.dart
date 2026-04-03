@@ -156,7 +156,7 @@ class NotificationService {
 
     final title = notification?.title ??
         message.data['title'] ??
-        '\u014BClaw';
+        '\u0273Claw';
     final body = notification?.body ??
         message.data['body'] ??
         '';

@@ -197,7 +197,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatState = ref.watch(chatProvider);
     final messages = chatState.messages;
     final isStreaming = chatState.isStreaming;
-    final sessionTitle = chatState.activeSession?.displayTitle ?? '\u014BClaw';
+    final sessionTitle = chatState.activeSession?.displayTitle ?? '\u0273Claw';
     final parentSession = chatState.parentSession;
     final activeId = chatState.activeSessionId;
     final sessionTags = chatState.activeSession?.tags ?? const [];
@@ -385,7 +385,7 @@ class _EmptyChat extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Ask \u014BClaw anything',
+            'Ask \u0273Claw anything',
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
@@ -797,7 +797,7 @@ class _InputBar extends StatelessWidget {
                 maxLines: 4,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  hintText: 'Message \u014BClaw...',
+                  hintText: 'Message \u0273Claw...',
                   hintStyle: TextStyle(
                     color: theme.colorScheme.onSurface
                         .withValues(alpha: 0.4),

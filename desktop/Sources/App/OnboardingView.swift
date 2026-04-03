@@ -94,7 +94,7 @@ struct OnboardingView: View {
                 .foregroundStyle(accent)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("\u{0266}Claw Setup")
+                Text("\u{0273}Claw Setup")
                     .font(.headline)
                 Text("Connect to your nSelf server")
                     .font(.caption)

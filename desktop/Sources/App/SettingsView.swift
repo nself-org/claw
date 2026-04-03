@@ -206,7 +206,7 @@ struct SettingsView: View {
             backing: .buffered,
             defer: false
         )
-        window.title = "Setup \u{0266}Claw"
+        window.title = "Setup \u{0273}Claw"
         window.center()
         window.isReleasedWhenClosed = false
 

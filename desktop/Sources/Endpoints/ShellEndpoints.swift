@@ -175,7 +175,7 @@ final class ShellEndpoints {
 
     private func showApprovalDialog(command: String, workingDirectory: String?) -> Bool {
         let alert = NSAlert()
-        alert.messageText = "\u{0266}Claw: Shell Command Request"
+        alert.messageText = "\u{0273}Claw: Shell Command Request"
         alert.informativeText = "The nClaw server is requesting to execute:\n\n\(command)"
         if let cwd = workingDirectory {
             alert.informativeText += "\n\nWorking directory: \(cwd)"

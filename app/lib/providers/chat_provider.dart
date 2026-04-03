@@ -137,7 +137,7 @@ class ChatSession {
   });
 
   /// Display title: prefer user-set title, then auto-title, then placeholder.
-  String get displayTitle => title ?? autoTitle ?? '\u014BClaw';
+  String get displayTitle => title ?? autoTitle ?? '\u0273Claw';
 
   /// True if this session has not yet been persisted to the server.
   bool get isPending => id.startsWith('_local_');

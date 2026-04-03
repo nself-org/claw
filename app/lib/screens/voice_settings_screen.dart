@@ -113,7 +113,7 @@ class _VoiceSettingsScreenState extends ConsumerState<VoiceSettingsScreen> {
     _tts.onComplete(() {
       if (mounted) setState(() => _testingTts = false);
     });
-    await _tts.speak('Hello! This is how \u014BClaw sounds with the current settings.');
+    await _tts.speak('Hello! This is how \u0273Claw sounds with the current settings.');
   }
 
   // -------------------------------------------------------------------------

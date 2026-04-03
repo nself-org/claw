@@ -128,7 +128,7 @@ class _NClawAppState extends ConsumerState<NClawApp> {
 
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: '\u014BClaw',
+      title: '\u0273Claw',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF6366F1),
