@@ -244,7 +244,7 @@ void main() {
   group('MessageBubble goldens', () {
     testWidgets('sent — light', (tester) async {
       await tester.pumpWidget(_wrap(
-        const _MessageBubble(content: 'Hello, nClaw!', isSent: true),
+        const _MessageBubble(content: 'Hello, ɳClaw!', isSent: true),
       ));
       await tester.pumpAndSettle();
       await expectLater(
@@ -289,7 +289,7 @@ void main() {
 
     testWidgets('sent — dark', (tester) async {
       await tester.pumpWidget(_wrap(
-        const _MessageBubble(content: 'Hello, nClaw!', isSent: true),
+        const _MessageBubble(content: 'Hello, ɳClaw!', isSent: true),
         theme: ThemeData.dark(useMaterial3: true),
       ));
       await tester.pumpAndSettle();
@@ -378,7 +378,7 @@ void main() {
     testWidgets('with unread badge + online — light', (tester) async {
       await tester.pumpWidget(_wrapList([
         const _ConversationListItem(
-          title: 'nClaw Assistant',
+          title: 'ɳClaw Assistant',
           snippet: 'Your backup completed successfully.',
           unreadCount: 3,
           isOnline: true,
@@ -409,7 +409,7 @@ void main() {
       await tester.pumpWidget(_wrapList(
         [
           const _ConversationListItem(
-            title: 'nClaw Assistant',
+            title: 'ɳClaw Assistant',
             snippet: 'Your backup completed successfully.',
             unreadCount: 3,
             isOnline: true,
@@ -439,7 +439,7 @@ void main() {
                 const Icon(Icons.qr_code_scanner, size: 80),
                 const SizedBox(height: 24),
                 Text(
-                  'Pair with your nSelf server',
+                  'Pair with your ɳSelf server',
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -487,7 +487,7 @@ void main() {
                 const Icon(Icons.qr_code_scanner, size: 80),
                 const SizedBox(height: 24),
                 const Text(
-                  'Pair with your nSelf server',
+                  'Pair with your ɳSelf server',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,

@@ -54,7 +54,7 @@ class HomeScreen extends ConsumerWidget {
       floatingActionButton: conn.status == ConnectionStatus.connected
           ? FloatingActionButton.small(
               heroTag: 'quick_help_fab',
-              tooltip: 'nSelf knowledge base',
+              tooltip: 'ɳSelf knowledge base',
               onPressed: () => showKnowledgeSearchSheet(context),
               child: const Icon(Icons.menu_book_rounded),
             )

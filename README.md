@@ -1,8 +1,8 @@
-# nClaw
+# ɳClaw
 
-Open-source AI assistant client for iOS, Android, macOS, and web — powered by your own nSelf backend.
+Open-source AI assistant client for iOS, Android, macOS, and web — powered by your own ɳSelf backend.
 
-Connect to your own self-hosted nSelf server with Pro plugins. You own your data, your models, your infrastructure.
+Connect to your own self-hosted ɳSelf server with Pro plugins. You own your data, your models, your infrastructure.
 
 ## Architecture
 
@@ -12,8 +12,8 @@ Flutter app (app/)
   +-- libnclaw FFI (libs/libnclaw/, Rust)
   |     Types, protocol definitions, E2E encryption (X25519 + XChaCha20-Poly1305)
   |
-  +-- nSelf backend (backend/)
-        PostgreSQL + Hasura GraphQL + Auth + nSelf Pro plugins
+  +-- ɳSelf backend (backend/)
+        PostgreSQL + Hasura GraphQL + Auth + ɳSelf Pro plugins
         Required: ai, claw, mux, voice, browser
 
 Native clients:
@@ -26,14 +26,14 @@ libnclaw is the single source of truth for types and protocol. All clients consu
 
 ## Requirements
 
-- **nSelf CLI** v1.0+ with a valid Pro license key (`nself_pro_` prefix)
+- **ɳSelf CLI** v1.0+ with a valid Pro license key (`nself_pro_` prefix)
 - **Pro plugins** installed: `ai`, `claw`, `mux`, `voice`, `browser`
 - **Flutter** 3.x (for `app/` and cross-platform builds)
 - **Rust** stable toolchain (for `libs/libnclaw/`)
-- **Docker** (for the nSelf backend)
+- **Docker** (for the ɳSelf backend)
 - **Xcode** (iOS/macOS builds) or **Android Studio** (Android builds)
 
-Pro plugins require a Pro tier license ($1.99/mo or $19.99/yr). See [nself.org/pricing](https://nself.org/pricing).
+Pro plugins require a Pro tier license ($1.99/mo or $19.99/yr). See [nself.org/pricing](https://nself.org/pricing) for details.
 
 ## Quick Start
 
@@ -122,7 +122,7 @@ apps/
   desktop/        Tauri desktop companion
 libs/
   libnclaw/       Shared Rust FFI library (types, protocol, E2E encryption)
-backend/          nSelf backend config for self-hosters
+backend/          ɳSelf backend config for self-hosters
 ```
 
 ## Backend Setup
@@ -135,4 +135,4 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup,
 
 ## License
 
-MIT — free for personal and commercial use. The nSelf Pro plugins required by the backend are separately licensed; see [nself.org/pricing](https://nself.org/pricing).
+MIT — free for personal and commercial use. The ɳSelf Pro plugins required by the backend are separately licensed; see [nself.org/pricing](https://nself.org/pricing).

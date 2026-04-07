@@ -124,7 +124,7 @@ class _KnowledgeSearchSheetState extends ConsumerState<_KnowledgeSearchSheet> {
                   Icon(Icons.menu_book_rounded,
                       color: colorScheme.primary, size: 22),
                   const SizedBox(width: 8),
-                  Text('nSelf Knowledge',
+                  Text('ɳSelf Knowledge',
                       style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.w600)),
                   const Spacer(),
@@ -144,7 +144,7 @@ class _KnowledgeSearchSheetState extends ConsumerState<_KnowledgeSearchSheet> {
                 focusNode: _searchFocus,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Search nSelf docs...',
+                  hintText: 'Search ɳSelf docs...',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: state.isLoading
                       ? const Padding(
@@ -244,7 +244,7 @@ class _KnowledgeSearchSheetState extends ConsumerState<_KnowledgeSearchSheet> {
                         color: colorScheme.onSurface.withAlpha(120)),
                     const SizedBox(width: 4),
                     Text(
-                      'nSelf v${_versionInfo!.version} · '
+                      'ɳSelf v${_versionInfo!.version} · '
                       '${_versionInfo!.totalChunks} articles',
                       style: theme.textTheme.bodySmall
                           ?.copyWith(color: colorScheme.onSurface.withAlpha(120)),
@@ -548,7 +548,7 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.menu_book_outlined, color: cs.onSurfaceVariant, size: 40),
           const SizedBox(height: 8),
-          Text('Search nSelf documentation',
+          Text('Search ɳSelf documentation',
               style: TextStyle(color: cs.onSurfaceVariant)),
           const SizedBox(height: 4),
           Text('CLI commands, plugins, architecture...',

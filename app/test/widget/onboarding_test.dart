@@ -73,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Text(
-          'Welcome to nClaw',
+          'Welcome to ɳClaw',
           key: Key('onboarding-step-1-title'),
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),

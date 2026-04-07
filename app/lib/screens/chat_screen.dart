@@ -852,7 +852,7 @@ class _KnowledgeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Tooltip(
-      message: 'Response informed by nSelf knowledge base',
+      message: 'Response informed by ɳSelf knowledge base',
       child: Chip(
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         padding: const EdgeInsets.symmetric(horizontal: 4),

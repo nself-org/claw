@@ -76,7 +76,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('Search nSelf documentation'), findsOneWidget);
+      expect(find.text('Search ɳSelf documentation'), findsOneWidget);
     });
   });
 

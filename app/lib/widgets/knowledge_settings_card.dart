@@ -211,9 +211,9 @@ class _KnowledgeSettingsCardState
           // Expert mode toggle
           SwitchListTile(
             dense: true,
-            title: const Text('nSelf expert mode'),
+            title: const Text('ɳSelf expert mode'),
             subtitle: const Text(
-                'Prepend an nSelf-expert system prompt to every message'),
+                'Prepend an ɳSelf-expert system prompt to every message'),
             value: prefs.expertMode,
             onChanged:
                 prefs.injectKnowledge ? prefsNotifier.setExpertMode : null,
