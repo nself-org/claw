@@ -729,33 +729,74 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final session =
           state.sessions.where((s) => s.id == sessionId).firstOrNull;
 
+      // 9.T12: SSE streaming. Send the request as a streamed POST so we can
+      // read tokens as they arrive. Each event is `data: <json>\n\n`.
       final body = <String, dynamic>{
         'message': text,
-        'stream': false,
+        'stream': true,
         if (!isPending) 'session_id': sessionId,
       };
 
-      final resp = await http
-          .post(
-            Uri.parse('$serverUrl/claw/chat'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(body),
-          )
-          .timeout(const Duration(seconds: 60));
+      final request = http.Request('POST', Uri.parse('$serverUrl/claw/chat'))
+        ..headers['Content-Type'] = 'application/json'
+        ..headers['Accept'] = 'text/event-stream'
+        ..body = jsonEncode(body);
 
-      if (resp.statusCode != 200) {
-        throw Exception('HTTP ${resp.statusCode}: ${resp.body}');
+      final streamed = await http.Client()
+          .send(request)
+          .timeout(const Duration(seconds: 120));
+
+      if (streamed.statusCode != 200) {
+        final errBody = await streamed.stream.bytesToString();
+        throw Exception('HTTP ${streamed.statusCode}: $errBody');
       }
 
-      final data = jsonDecode(resp.body) as Map<String, dynamic>;
-      final responseText = data['response'] as String? ?? '';
-      final serverSessionId = data['session_id'] as String?;
-      final tierSource = data['tier_source'] as String?;
-      final latencyMs = data['latency_ms'] as int?;
-      final tokens = data['tokens'] as int?;
-      final knowledgeUsed =
-          (data['suggested_actions'] as List?)?.isNotEmpty ?? false;
-      final memoriesUsed = (data['memories_used'] as int?) ?? 0;
+      String responseText = '';
+      String? serverSessionId;
+      String? tierSource;
+      int? latencyMs;
+      int? tokens;
+      bool knowledgeUsed = false;
+      int memoriesUsed = 0;
+      Map<String, dynamic>? finalData;
+
+      await for (final line in streamed.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())) {
+        if (!line.startsWith('data:')) continue;
+        final payload = line.substring(5).trim();
+        if (payload.isEmpty || payload == '[DONE]') continue;
+        Map<String, dynamic> evt;
+        try {
+          evt = jsonDecode(payload) as Map<String, dynamic>;
+        } catch (_) {
+          continue;
+        }
+        final type = evt['type'] as String? ?? 'token';
+        if (type == 'token' || type == 'delta') {
+          final chunk = (evt['content'] ?? evt['delta'] ?? '') as String;
+          if (chunk.isNotEmpty) {
+            responseText += chunk;
+            state = state.copyWith(streamingContent: responseText);
+          }
+        } else if (type == 'done' || type == 'final' || type == 'end') {
+          finalData = evt;
+          serverSessionId = evt['session_id'] as String? ?? serverSessionId;
+          tierSource = evt['tier_source'] as String? ?? tierSource;
+          latencyMs = (evt['latency_ms'] as int?) ?? latencyMs;
+          tokens = (evt['tokens'] as int?) ?? tokens;
+          knowledgeUsed =
+              (evt['suggested_actions'] as List?)?.isNotEmpty ?? knowledgeUsed;
+          memoriesUsed = (evt['memories_used'] as int?) ?? memoriesUsed;
+          if ((evt['response'] as String?)?.isNotEmpty ?? false) {
+            responseText = evt['response'] as String;
+          }
+        } else if (type == 'error') {
+          throw Exception(evt['error'] ?? 'streaming error');
+        }
+      }
+
+      final data = finalData ?? <String, dynamic>{};
 
       // Promote pending session to server-assigned id.
       String activeId = sessionId;
