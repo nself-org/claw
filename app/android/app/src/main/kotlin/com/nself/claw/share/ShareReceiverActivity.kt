@@ -2,7 +2,7 @@
 ///
 /// Receives shared content via Intent and bridges to Flutter
 /// via MethodChannel. Opens the ShareComposerScreen.
-package com.nself.nclaw.share
+package com.nself.claw.share
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +12,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class ShareReceiverActivity : FlutterActivity() {
 
-    private val channelName = "com.nself.nclaw/share"
+    private val channelName = "com.nself.claw/share"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

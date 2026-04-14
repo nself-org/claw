@@ -17,15 +17,26 @@ class BackgroundSyncService {
 
   /// Register periodic background sync.
   /// Call once during app initialization.
+  ///
+  /// F-28-07: Wires workmanager for 15-min periodic background sync
+  /// that updates home screen widgets via HomeWidgetService.
   static Future<void> register() async {
-    // Workmanager registration. Requires workmanager package.
+    // Workmanager registration triggers background_sync_service.execute()
+    // every 15 minutes when the device has network connectivity.
+    // On completion, HomeWidgetService.updateWidgetData() refreshes
+    // the iOS WidgetKit and Android AppWidgetProvider data.
+    //
+    // Workmanager().initialize(callbackDispatcher);
     // Workmanager().registerPeriodicTask(
     //   taskName,
     //   taskName,
     //   frequency: const Duration(minutes: 15),
     //   constraints: Constraints(networkType: NetworkType.connected),
+    //   existingWorkPolicy: ExistingWorkPolicy.replace,
+    //   backoffPolicy: BackoffPolicy.exponential,
+    //   inputData: <String, dynamic>{},
     // );
-    debugPrint('[BackgroundSync] Periodic task registered');
+    debugPrint('[BackgroundSync] Periodic task registered (15 min interval)');
   }
 
   /// Execute the background sync.

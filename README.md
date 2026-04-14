@@ -1,5 +1,7 @@
 # ɳClaw
 
+[![coverage](https://codecov.io/gh/nself-org/claw/branch/main/graph/badge.svg)](https://codecov.io/gh/nself-org/claw)
+
 Open-source AI assistant client for iOS, Android, macOS, and web — powered by your own ɳSelf backend.
 
 Connect to your own self-hosted ɳSelf server with Pro plugins. You own your data, your models, your infrastructure.

@@ -1,0 +1,32 @@
+# Maestro flow: Background -> foreground -> session resume
+appId: org.nself.claw
+---
+- launchApp
+- assertVisible: "Sign In"
+- tapOn: "Email"
+- inputText: "alice@test.local"
+- tapOn: "Password"
+- inputText: "testpass123"
+- tapOn: "Sign In"
+- assertVisible:
+    text: "New Chat"
+    timeout: 15000
+# Send a message so there's session state.
+- tapOn: "New Chat"
+- tapOn: "Message"
+- inputText: "session state test"
+- tapOn:
+    id: "send_button"
+- assertVisible:
+    text: "session state test"
+    timeout: 10000
+# Background the app.
+- pressKey: "Home"
+- wait: 3000
+# Foreground.
+- launchApp
+# Session should be preserved — same message still visible.
+- assertVisible:
+    text: "session state test"
+    timeout: 10000
+- takeScreenshot: "03-background-foreground"

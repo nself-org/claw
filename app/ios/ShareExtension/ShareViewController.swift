@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 class ShareViewController: SLComposeServiceViewController {
 
-    private let appGroupId = "group.com.nself.nclaw"
+    private let appGroupId = "group.com.nself.claw"
 
     override func isContentValid() -> Bool {
         return true

@@ -1,0 +1,38 @@
+ɳClaw is a personal AI assistant with infinite, self-organizing memory. It remembers every conversation, extracts facts, decisions, and entities, and builds a knowledge graph that compounds over time.
+
+Unlike other AI chat apps, ɳClaw does not start you with "New Chat" every time. Your sidebar shows your life organized by topics. You just talk. It auto-detects subjects, branches conversations when you shift context, and connects related ideas across months of dialogue.
+
+Your data stays on YOUR server. ɳClaw is fully self-hosted. You run the backend on your own hardware or VPS using the nSelf CLI. No cloud accounts, no data mining, no vendor lock-in.
+
+KEY FEATURES
+
+Personal memory that grows
+Every conversation builds your personal knowledge base. ɳClaw extracts names, dates, preferences, project details, and decisions. Ask "what did I decide about the kitchen renovation?" six months later and get an instant, sourced answer.
+
+Topic-based organization
+Conversations auto-organize into topics. Your sidebar shows "Work / Project Alpha", "Health / Running", "Finance / Budget 2026" instead of a wall of "New Chat" entries.
+
+Context that follows you
+Switch between topics freely. ɳClaw carries relevant context forward. Start talking about a recipe, mention your grocery budget, and it already knows your monthly food spending from a conversation last week.
+
+Voice and text
+Speak naturally or type. Real-time transcription with support for multiple languages. Voice replies when your hands are busy.
+
+Share anything into ɳClaw
+Share articles, images, or text from any app directly into ɳClaw. It reads, summarizes, and files the content into the right topic automatically.
+
+End-to-end encrypted
+All data encrypted with X25519 + XChaCha20-Poly1305. Your server, your keys, your data.
+
+Self-hosted backend
+Powered by nSelf CLI. PostgreSQL stores everything (pgvector for semantic search, ltree for topic trees, JSONB for flexible schemas). Redis for speed. MeiliSearch for full-text search.
+
+Cross-platform
+Available on iOS, Android, macOS, and web. All clients sync through your self-hosted backend.
+
+REQUIREMENTS
+
+ɳClaw requires an nSelf backend server with the AI, Claw, and Mux pro plugins installed. Visit nself.org to get started in five minutes.
+
+Privacy policy: https://claw.nself.org/privacy
+Support: support@nself.org

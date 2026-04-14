@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>ɳClaw uses the microphone for voice input.</string>
+	<string>ɳClaw needs microphone access for voice conversations and dictation.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>ɳClaw uses speech recognition to convert your voice to text.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
@@ -11,7 +11,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Nclaw</string>
+	<string>ɳClaw</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -65,7 +65,22 @@
 		</dict>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access is needed to scan pairing QR codes.</string>
+	<string>ɳClaw needs camera access to capture photos and documents for your knowledge graph.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ɳClaw needs photo library access so you can share images into conversations.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>ɳClaw saves generated images to your photo library when you ask.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>ɳClaw uses contacts to help you remember people and relationships.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>ɳClaw uses Face ID to unlock your private memory vault.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>ɳClaw sends morning briefings and reminders.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

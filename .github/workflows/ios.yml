@@ -1,0 +1,77 @@
+name: iOS Build & TestFlight
+
+on:
+  push:
+    tags:
+      - 'v*-beta*'
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Fastlane lane to run'
+        required: true
+        default: 'build_only'
+        type: choice
+        options:
+          - build_only
+          - beta
+
+permissions:
+  contents: read
+
+jobs:
+  ios-build:
+    name: Build iOS
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: app
+    env:
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: cd ios && pod install --repo-update
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: app/ios
+
+      - name: Install fastlane
+        run: gem install fastlane
+        working-directory: app/ios
+
+      - name: Determine lane
+        id: lane
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "name=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ github.event.inputs.lane }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run fastlane
+        run: fastlane ${{ steps.lane.outputs.name }}
+        working-directory: app/ios
+
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nclaw-ios-${{ github.sha }}
+          path: app/ios/build/*.ipa
+          retention-days: 14

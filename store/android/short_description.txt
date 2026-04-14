@@ -1,0 +1,1 @@
+Personal AI assistant with infinite memory. Self-hosted. Your data, your server.

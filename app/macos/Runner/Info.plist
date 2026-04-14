@@ -32,5 +32,17 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>ɳClaw uses the camera for video calls and scanning.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ɳClaw accesses your photos to share images in conversations.</string>
+	<key>SUFeedURL</key>
+	<string>https://downloads.nself.org/claw/macos/appcast.xml</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUPublicEDKey</key>
+	<string>SPARKLE_ED25519_PUBLIC_KEY_PLACEHOLDER</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>

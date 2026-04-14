@@ -4,9 +4,12 @@
 /// Cupertino on iOS via platform checks.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/settings_provider.dart';
 import '../models/app_settings.dart';
+import '../services/beta_channel_service.dart';
+import 'feedback_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -73,6 +76,21 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.build,
               title: 'Advanced',
               onTap: () => _push(context, const _AdvancedSettings()),
+            ),
+            _SettingsNavTile(
+              icon: Icons.feedback,
+              title: 'Send Feedback',
+              onTap: () => _push(context, const FeedbackScreen()),
+            ),
+            _SettingsNavTile(
+              icon: Icons.science,
+              title: 'Beta Program',
+              onTap: () => _push(context, const _BetaProgramSettings()),
+            ),
+            _SettingsNavTile(
+              icon: Icons.info_outline,
+              title: 'About',
+              onTap: () => _push(context, const _AboutSettings()),
             ),
           ]),
         ],
@@ -522,6 +540,110 @@ class _AdvancedSettings extends ConsumerWidget {
             onChanged: (v) => ref
                 .read(settingsProvider.notifier)
                 .update((s) => s.copyWith(experimentalFeatures: v)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BetaProgramSettings extends ConsumerStatefulWidget {
+  const _BetaProgramSettings();
+
+  @override
+  ConsumerState<_BetaProgramSettings> createState() =>
+      _BetaProgramSettingsState();
+}
+
+class _BetaProgramSettingsState extends ConsumerState<_BetaProgramSettings> {
+  bool _opted = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final v = await BetaChannelService.isBetaOptedIn();
+    if (mounted) setState(() { _opted = v; _loading = false; });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Beta Program')),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              children: [
+                SwitchListTile(
+                  title: const Text('Join beta program'),
+                  subtitle: const Text(
+                    'Get early access to new features. Beta builds may be less stable.',
+                  ),
+                  value: _opted,
+                  onChanged: (v) async {
+                    await BetaChannelService.setBetaOptIn(v);
+                    setState(() => _opted = v);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(v
+                              ? 'Joined beta program. Updates will switch on next check.'
+                              : 'Left beta program. Returning to stable channel.'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'On iOS, beta builds are delivered via TestFlight. '
+                    'On Android, via Play Internal Test. '
+                    'On desktop, the auto-update feed switches to the beta channel.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _AboutSettings extends StatelessWidget {
+  const _AboutSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('About')),
+      body: ListView(
+        children: [
+          const ListTile(
+            title: Text('nClaw'),
+            subtitle: Text('v1.1.0'),
+          ),
+          ListTile(
+            title: const Text('Privacy Policy'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrl(Uri.parse('https://claw.nself.org/privacy')),
+          ),
+          ListTile(
+            title: const Text('Terms of Service'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrl(Uri.parse('https://claw.nself.org/terms')),
+          ),
+          ListTile(
+            title: const Text('Support'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrl(Uri.parse('https://claw.nself.org/support')),
+          ),
+          const ListTile(
+            title: Text('License'),
+            subtitle: Text('MIT'),
           ),
         ],
       ),

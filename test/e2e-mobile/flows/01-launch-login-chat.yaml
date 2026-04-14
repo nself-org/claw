@@ -1,0 +1,22 @@
+# Maestro flow: Launch -> login -> send chat -> screenshot
+appId: org.nself.claw
+---
+- launchApp
+- assertVisible: "Sign In"
+- tapOn: "Email"
+- inputText: "alice@test.local"
+- tapOn: "Password"
+- inputText: "testpass123"
+- tapOn: "Sign In"
+- assertVisible:
+    text: "New Chat"
+    timeout: 15000
+- tapOn: "New Chat"
+- tapOn: "Message"
+- inputText: "Hello from Maestro"
+- tapOn:
+    id: "send_button"
+- assertVisible:
+    text: "Hello from Maestro"
+    timeout: 10000
+- takeScreenshot: "01-login-chat"
