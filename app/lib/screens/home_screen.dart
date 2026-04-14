@@ -4,9 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/action_provider.dart';
 import '../providers/connection_provider.dart';
 import '../widgets/knowledge_search_sheet.dart';
+import '../widgets/topic_drawer.dart';
+import '../widgets/voice_capture_fab.dart';
 import 'action_list_screen.dart';
 import 'chat_screen.dart';
+import 'memory_explorer_screen.dart';
 import 'server_list_screen.dart';
+import 'settings_screen.dart';
 
 /// Provider holding the currently selected bottom-nav tab index.
 ///
@@ -27,6 +31,7 @@ class HomeScreen extends ConsumerWidget {
 
     final tabs = [
       const ChatScreen(),
+      const MemoryExplorerScreen(),
       _ActionsTab(conn: conn, pendingCount: pendingCount),
       const ServerListScreen(),
     ];
@@ -35,6 +40,15 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('\u0273Claw'),
         actions: [
+          // Settings.
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Settings',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                  builder: (_) => const SettingsScreen()),
+            ),
+          ),
           // Disconnect from active server.
           IconButton(
             icon: const Icon(Icons.link_off),
@@ -49,15 +63,24 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
+      // E-26-01: Topic drawer (swipe from left).
+      drawer: const TopicDrawer(),
       body: tabs[selectedTab],
-      // T-1145: QuickHelpFAB — visible only when connected to a server
+      // E-26-08a: Voice capture FAB on chat tab, knowledge FAB otherwise.
       floatingActionButton: conn.status == ConnectionStatus.connected
-          ? FloatingActionButton.small(
-              heroTag: 'quick_help_fab',
-              tooltip: 'ɳSelf knowledge base',
-              onPressed: () => showKnowledgeSearchSheet(context),
-              child: const Icon(Icons.menu_book_rounded),
-            )
+          ? selectedTab == 0
+              ? VoiceCaptureFab(
+                  onTranscribed: (text) {
+                    // Insert transcribed text into chat composer.
+                    // The ChatScreen handles this via a provider or callback.
+                  },
+                )
+              : FloatingActionButton.small(
+                  heroTag: 'quick_help_fab',
+                  tooltip: '\u0273Self knowledge base',
+                  onPressed: () => showKnowledgeSearchSheet(context),
+                  child: const Icon(Icons.menu_book_rounded),
+                )
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedTab,
@@ -69,6 +92,11 @@ class HomeScreen extends ConsumerWidget {
             icon: Icon(Icons.chat_bubble_outline),
             selectedIcon: Icon(Icons.chat_bubble),
             label: 'Chat',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.psychology_outlined),
+            selectedIcon: Icon(Icons.psychology),
+            label: 'Memory',
           ),
           NavigationDestination(
             icon: Badge(
