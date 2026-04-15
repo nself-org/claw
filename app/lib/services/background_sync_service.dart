@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:workmanager/workmanager.dart';
 
 import 'home_widget_service.dart';
 import 'offline_cache_service.dart';
@@ -21,21 +22,16 @@ class BackgroundSyncService {
   /// F-28-07: Wires workmanager for 15-min periodic background sync
   /// that updates home screen widgets via HomeWidgetService.
   static Future<void> register() async {
-    // Workmanager registration triggers background_sync_service.execute()
-    // every 15 minutes when the device has network connectivity.
-    // On completion, HomeWidgetService.updateWidgetData() refreshes
-    // the iOS WidgetKit and Android AppWidgetProvider data.
-    //
-    // Workmanager().initialize(callbackDispatcher);
-    // Workmanager().registerPeriodicTask(
-    //   taskName,
-    //   taskName,
-    //   frequency: const Duration(minutes: 15),
-    //   constraints: Constraints(networkType: NetworkType.connected),
-    //   existingWorkPolicy: ExistingWorkPolicy.replace,
-    //   backoffPolicy: BackoffPolicy.exponential,
-    //   inputData: <String, dynamic>{},
-    // );
+    await Workmanager().initialize(callbackDispatcher);
+    await Workmanager().registerPeriodicTask(
+      taskName,
+      taskName,
+      frequency: const Duration(minutes: 15),
+      constraints: Constraints(networkType: NetworkType.connected),
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+      backoffPolicy: BackoffPolicy.exponential,
+      inputData: <String, dynamic>{},
+    );
     debugPrint('[BackgroundSync] Periodic task registered (15 min interval)');
   }
 
@@ -135,4 +131,16 @@ class BackgroundSyncService {
       debugPrint('[BackgroundSync] Data sync failed: $e');
     }
   }
+}
+
+/// Top-level callback for Workmanager. Must be a top-level function.
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((taskName, inputData) async {
+    if (taskName == BackgroundSyncService.taskName) {
+      final serverUrl = inputData?['server_url'] as String?;
+      return BackgroundSyncService.execute(serverUrl);
+    }
+    return Future.value(true);
+  });
 }
