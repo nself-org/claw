@@ -1,23 +1,28 @@
-# Active Tasks: claw/
+# Active Tasks — ɳClaw
 
-**Status:** No repo-local active phase.
-
-E2 Fleet C (Documentation Rebuild) completed 2026-04-17. Repo-local tasks below.
-
-See ecosystem-level phase: `/Volumes/X9/Sites/nself/.claude/phases/current/status.md`
+_Repo-specific tasks. Cross-repo sprint tracked at ~/Sites/nself/.claude/tasks/active.md (PPI)._
 
 ---
 
-## Phase: E2 Fleet C — DONE
-
-All Fleet C documentation tickets completed under ecosystem E2 coordination on 2026-04-17.
-
-For repo-local tasks outside E2 scope, add them below.
+**Phase:** P93  ·  **Wave:** 1  ·  **Sprint:** S07
+**Current version:** see MASTER-VERSIONS.md (claw row: `1.1.1` P93 target)
+**Last updated:** 2026-04-17
 
 ---
 
-## Repo-local tasks
+## Sprint S07 — E2 Residual Doc Fixes
 
+| ID | Title | Status | Owner |
+|----|-------|--------|-------|
+| S07-T01 | claw/.claude/tasks/active.md skeleton | ✅ Done | S07 agent |
+
+---
+
+## Status
+
+No active implementation tasks for claw in Wave 1. See sprint files for upcoming work.
+
+Ongoing repo-local items (deferred, not blocking P93 Wave 1):
 - Coordinate with cli release workflow for ongoing command/plugin updates (per E2 doc-sync rule)
 - Scaffold remaining native platform dirs: apps/ios/, apps/android/, apps/macos/, apps/web/, apps/desktop/
 - Complete libnclaw FFI (per .claude/docs/libnclaw-audit.md 2026-03-13)
