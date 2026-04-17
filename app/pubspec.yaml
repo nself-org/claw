@@ -65,7 +65,7 @@ dependencies:
   permission_handler: 11.3.0
 
   # Sensors & location
-  sensors_plus: 4.0.0
+  sensors_plus: 4.0.2
   geolocator: 11.0.0
   battery_plus: 6.2.3
 
