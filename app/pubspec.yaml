@@ -95,8 +95,8 @@ dev_dependencies:
   msix: 3.16.7
   riverpod_generator: 2.6.3
   build_runner: 2.4.14
-  custom_lint: 0.7.1
-  riverpod_lint: 2.6.3
+  custom_lint: 0.7.6
+  riverpod_lint: 2.6.5
 
 flutter_launcher_icons:
   ios: true
