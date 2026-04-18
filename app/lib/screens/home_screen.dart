@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/action_provider.dart';
 import '../providers/connection_provider.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/greeting_header.dart';
 import '../widgets/knowledge_search_sheet.dart';
 import '../widgets/topic_drawer.dart';
 import '../widgets/voice_capture_fab.dart';
@@ -153,6 +155,11 @@ class _ActionsTab extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // S21-T02: Personalized time-of-day greeting.
+          const GreetingHeader(
+            padding: EdgeInsets.only(bottom: 16),
+            subtitle: null,
+          ),
           _ConnectionStatusCard(
             status: conn.status,
             serverName: activeServer?.name ?? 'No server',
@@ -194,23 +201,50 @@ class _ActionsTab extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
+          // S21-T05: Consistent empty states across all seven states.
           Expanded(
-            child: Center(
-              child: Text(
-                conn.status == ConnectionStatus.connected
-                    ? pendingCount > 0
-                        ? '$pendingCount action${pendingCount == 1 ? '' : 's'} pending approval'
-                        : 'Waiting for actions from server...'
-                    : 'Not connected',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface
-                      .withValues(alpha: 0.5),
-                ),
-              ),
-            ),
+            child: _buildActionsEmptyState(context, ref, conn, pendingCount),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionsEmptyState(
+    BuildContext context,
+    WidgetRef ref,
+    ConnectionState conn,
+    int pendingCount,
+  ) {
+    if (conn.status == ConnectionStatus.disconnected ||
+        conn.status == ConnectionStatus.error) {
+      return EmptyState.offline(
+        title: 'Not connected',
+        message: 'Reconnect to your nSelf server to receive actions.',
+        onRetry: () => ref.read(connectionProvider.notifier).reconnect(),
+      );
+    }
+    if (pendingCount > 0) {
+      return EmptyState(
+        icon: Icons.bolt,
+        title:
+            '$pendingCount action${pendingCount == 1 ? '' : 's'} pending approval',
+        message: 'Tap Action Queue to review them.',
+        primaryAction: EmptyStateAction(
+          label: 'Review',
+          icon: Icons.chevron_right,
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const ActionListScreen(),
+            ),
+          ),
+        ),
+      );
+    }
+    return EmptyState.firstTime(
+      icon: Icons.inbox_outlined,
+      title: 'No actions waiting',
+      message: "Approved actions from ɳClaw will appear here.",
     );
   }
 }

@@ -913,17 +913,26 @@ class _MemoriesBadge extends StatelessWidget {
 }
 
 /// Bottom input bar with text field, mic button, and send/loading button.
+///
+/// S21-T06: Simplified — 3 always-visible icons (attach, mic, send/stop)
+/// plus an overflow menu for less-common actions.
 class _InputBar extends StatelessWidget {
   final TextEditingController controller;
   final bool isStreaming;
   final VoidCallback onSend;
   final VoidCallback? onLongPressMic;
+  final VoidCallback? onAttach;
+  final VoidCallback? onCamera;
+  final VoidCallback? onTemplates;
 
   const _InputBar({
     required this.controller,
     required this.isStreaming,
     required this.onSend,
     this.onLongPressMic,
+    this.onAttach,
+    this.onCamera,
+    this.onTemplates,
   });
 
   @override
@@ -935,7 +944,51 @@ class _InputBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
         child: Row(
           children: [
-            // Mic button — tap: voice input overlay; long-press: continuous mode.
+            // Icon 1/3: Attach (with overflow menu for templates + camera).
+            PopupMenuButton<String>(
+              tooltip: 'More',
+              icon: const Icon(Icons.add_circle_outline),
+              onSelected: (value) {
+                switch (value) {
+                  case 'attach':
+                    onAttach?.call();
+                    break;
+                  case 'camera':
+                    onCamera?.call();
+                    break;
+                  case 'templates':
+                    onTemplates?.call();
+                    break;
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'attach',
+                  child: ListTile(
+                    leading: Icon(Icons.attach_file),
+                    title: Text('Attach file'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'camera',
+                  child: ListTile(
+                    leading: Icon(Icons.camera_alt_outlined),
+                    title: Text('Camera'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'templates',
+                  child: ListTile(
+                    leading: Icon(Icons.bookmark_outline),
+                    title: Text('Prompt templates'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+            // Icon 2/3: Mic — tap: voice overlay; long-press: continuous mode.
             GestureDetector(
               onLongPress: onLongPressMic,
               child: VoiceMicButton(

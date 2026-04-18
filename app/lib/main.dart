@@ -13,6 +13,7 @@ import 'screens/pairing_screen.dart';
 import 'providers/connection_provider.dart';
 import 'services/deep_link_service.dart';
 import 'services/notification_service.dart';
+import 'theme/brand_theme.dart';
 
 // Top-level background handler — must be registered before runApp.
 @pragma('vm:entry-point')
@@ -181,12 +182,11 @@ class _NClawAppState extends ConsumerState<NClawApp> {
       navigatorKey: navigatorKey,
       title: '\u0273Claw',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF6366F1),
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F0F1A),
-        useMaterial3: true,
-      ),
+      // S21-T01 + S21-T13: Brand-aligned Material 3 theme with WCAG AA 4.5:1
+      // contrast. Single source of truth in theme/brand_theme.dart.
+      theme: BrandTheme.dark(),
+      darkTheme: BrandTheme.dark(),
+      themeMode: ThemeMode.dark,
       routes: {
         DigestViewerScreen.routeName: (_) => const DigestViewerScreen(),
       },
