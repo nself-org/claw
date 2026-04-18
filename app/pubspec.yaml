@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
   # UI
   cupertino_icons: 1.0.8
@@ -137,3 +140,4 @@ msix_config:
 
 flutter:
   uses-material-design: true
+  generate: true

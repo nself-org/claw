@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+  "appTitle": "ɳClaw",
+  "@appTitle": { "description": "The name of the application" },
+  "navChat": "Chat",
+  "@navChat": { "description": "Bottom-nav label for the chat tab" },
+  "navMemory": "Memory",
+  "@navMemory": { "description": "Bottom-nav label for the memory explorer tab" },
+  "navActions": "Actions",
+  "@navActions": { "description": "Bottom-nav label for the actions tab" },
+  "navServers": "Servers",
+  "@navServers": { "description": "Bottom-nav label for the server-list tab" },
+  "settings": "Settings",
+  "disconnect": "Disconnect",
+  "loading": "Loading...",
+  "error": "Something went wrong",
+  "retry": "Retry",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "pairing": "Pairing",
+  "knowledgeBase": "ɳSelf knowledge base",
+  "voiceCapture": "Record a voice note"
+}

@@ -40,28 +40,40 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('\u0273Claw'),
+        title: Semantics(
+          header: true,
+          label: '\u0273Claw',
+          child: const Text('\u0273Claw'),
+        ),
         actions: [
           // Settings.
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                  builder: (_) => const SettingsScreen()),
+          Semantics(
+            button: true,
+            label: 'Settings',
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: 'Settings',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                    builder: (_) => const SettingsScreen()),
+              ),
             ),
           ),
           // Disconnect from active server.
-          IconButton(
-            icon: const Icon(Icons.link_off),
-            tooltip: 'Disconnect',
-            onPressed: () async {
-              if (activeServer != null) {
-                await ref
-                    .read(connectionProvider.notifier)
-                    .removeServer(activeServer.id);
-              }
-            },
+          Semantics(
+            button: true,
+            label: 'Disconnect from active server',
+            child: IconButton(
+              icon: const Icon(Icons.link_off),
+              tooltip: 'Disconnect',
+              onPressed: () async {
+                if (activeServer != null) {
+                  await ref
+                      .read(connectionProvider.notifier)
+                      .removeServer(activeServer.id);
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -91,40 +103,46 @@ class HomeScreen extends ConsumerWidget {
         },
         destinations: [
           const NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
+            icon: Icon(Icons.chat_bubble_outline, semanticLabel: 'Chat'),
+            selectedIcon: Icon(Icons.chat_bubble, semanticLabel: 'Chat'),
             label: 'Chat',
+            tooltip: 'Chat with \u0273Claw',
           ),
           const NavigationDestination(
-            icon: Icon(Icons.psychology_outlined),
-            selectedIcon: Icon(Icons.psychology),
+            icon: Icon(Icons.psychology_outlined, semanticLabel: 'Memory'),
+            selectedIcon: Icon(Icons.psychology, semanticLabel: 'Memory'),
             label: 'Memory',
+            tooltip: 'Browse memories and topics',
           ),
           NavigationDestination(
             icon: Badge(
               label: Text('$pendingCount'),
               isLabelVisible: pendingCount > 0,
-              child: const Icon(Icons.bolt_outlined),
+              child: const Icon(Icons.bolt_outlined, semanticLabel: 'Actions'),
             ),
             selectedIcon: Badge(
               label: Text('$pendingCount'),
               isLabelVisible: pendingCount > 0,
-              child: const Icon(Icons.bolt),
+              child: const Icon(Icons.bolt, semanticLabel: 'Actions'),
             ),
             label: 'Actions',
+            tooltip: pendingCount > 0
+                ? 'Actions, $pendingCount pending'
+                : 'Actions queue',
           ),
           NavigationDestination(
             icon: Badge(
               label: Text('${conn.servers.length}'),
               isLabelVisible: conn.servers.length > 1,
-              child: const Icon(Icons.dns_outlined),
+              child: const Icon(Icons.dns_outlined, semanticLabel: 'Servers'),
             ),
             selectedIcon: Badge(
               label: Text('${conn.servers.length}'),
               isLabelVisible: conn.servers.length > 1,
-              child: const Icon(Icons.dns),
+              child: const Icon(Icons.dns, semanticLabel: 'Servers'),
             ),
             label: 'Servers',
+            tooltip: 'Paired servers',
           ),
         ],
       ),
