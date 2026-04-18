@@ -136,8 +136,16 @@ class ChatSession {
     this.pendingProjectId,
   });
 
-  /// Display title: prefer user-set title, then auto-title, then placeholder.
-  String get displayTitle => title ?? autoTitle ?? '\u0273Claw';
+  /// Display title: prefer user-set title, then auto-title, then date-based fallback.
+  String get displayTitle {
+    if (title != null) return title!;
+    if (autoTitle != null) return autoTitle!;
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return 'Chat, ${months[createdAt.month - 1]} ${createdAt.day}';
+  }
 
   /// True if this session has not yet been persisted to the server.
   bool get isPending => id.startsWith('_local_');
@@ -509,6 +517,41 @@ class ChatNotifier extends StateNotifier<ChatState> {
         sessions: sessions,
         activeSessionId: sessions.first.id,
       );
+      if (state.sessions.isNotEmpty) {
+        backfillUntitledSessions();
+      }
+    }
+  }
+
+  /// Backfill auto-titles for sessions that have neither a user title nor an
+  /// AI-generated title. Processes up to 77 untitled sessions in batches of 5
+  /// concurrent requests. Failures for individual sessions are silently skipped.
+  Future<void> backfillUntitledSessions() async {
+    final base = _serverUrl;
+    if (base.isEmpty) return;
+
+    final untitled = state.sessions
+        .where((s) => s.title == null && s.autoTitle == null && !s.isPending)
+        .take(77)
+        .toList();
+
+    if (untitled.isEmpty) return;
+
+    const batchSize = 5;
+    for (int i = 0; i < untitled.length; i += batchSize) {
+      final chunk = untitled.skip(i).take(batchSize).toList();
+      await Future.wait(chunk.map((session) async {
+        try {
+          final data = await _post('$base/claw/sessions/${session.id}/generate-title');
+          if (data == null) return;
+          final autoTitle = data['auto_title'] as String?;
+          if (autoTitle != null && autoTitle.isNotEmpty) {
+            _updateSession(session.id, (s) => s.copyWith(autoTitle: autoTitle));
+          }
+        } catch (_) {
+          // Skip failed sessions silently — do not crash or corrupt state.
+        }
+      }));
     }
   }
 

@@ -2,6 +2,9 @@
 class AppSettings {
   // General
   final String displayName;
+  // S21-T11: Profile bio + avatar URL.
+  final String bio;
+  final String avatarUrl;
   final String language;
   final bool launchAtLogin;
 
@@ -51,6 +54,8 @@ class AppSettings {
 
   const AppSettings({
     this.displayName = '',
+    this.bio = '',
+    this.avatarUrl = '',
     this.language = 'en',
     this.launchAtLogin = false,
     this.defaultModel = 'auto',
@@ -83,6 +88,8 @@ class AppSettings {
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
         displayName: json['display_name'] as String? ?? '',
+        bio: json['bio'] as String? ?? '',
+        avatarUrl: json['avatar_url'] as String? ?? '',
         language: json['language'] as String? ?? 'en',
         launchAtLogin: json['launch_at_login'] as bool? ?? false,
         defaultModel: json['default_model'] as String? ?? 'auto',
@@ -121,6 +128,8 @@ class AppSettings {
 
   Map<String, dynamic> toJson() => {
         'display_name': displayName,
+        'bio': bio,
+        'avatar_url': avatarUrl,
         'language': language,
         'launch_at_login': launchAtLogin,
         'default_model': defaultModel,
@@ -153,6 +162,8 @@ class AppSettings {
 
   AppSettings copyWith({
     String? displayName,
+    String? bio,
+    String? avatarUrl,
     String? language,
     bool? launchAtLogin,
     String? defaultModel,
@@ -184,6 +195,8 @@ class AppSettings {
   }) =>
       AppSettings(
         displayName: displayName ?? this.displayName,
+        bio: bio ?? this.bio,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
         language: language ?? this.language,
         launchAtLogin: launchAtLogin ?? this.launchAtLogin,
         defaultModel: defaultModel ?? this.defaultModel,
