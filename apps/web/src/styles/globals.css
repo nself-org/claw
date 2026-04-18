@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #6366F1;
+  --color-primary-hover: #4F46E5;
+  --color-primary-text: #A5B4FC;     /* indigo-300, 9.6:1 on #0F0F1A — use when primary needed as text */
+  --color-bg: #0F0F1A;
+  --color-bg-card: rgba(255, 255, 255, 0.05);
+  --color-bg-card-hover: rgba(255, 255, 255, 0.08);
+  --color-bg-elevated: #16162A;      /* slightly lighter card surfaces */
+  --color-bg-input: rgba(255, 255, 255, 0.06);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-focus: rgba(99, 102, 241, 0.6);
+  --color-text: #F1F5F9;
+  --color-text-muted: #94A3B8;
+  --color-text-placeholder: #64748B; /* 3.8:1 — large/bold only, placeholder pseudo-element only */
+  --color-error: #F87171;
+  --color-success: #4ADE80;
+  --color-warning: #FBBF24;
+  --color-info: #38BDF8;
+  --radius-card: 12px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.8);
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  margin: 0;
+  padding: 0;
+}
+
+/* Focus-visible ring — 2px offset indigo */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default focus ring in favour of focus-visible */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Utility: glass card surface */
+.glass-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* Skeleton pulse animation */
+@keyframes skeleton-pulse {
+  0%, 100% { background-color: rgba(255, 255, 255, 0.04); }
+  50%       { background-color: rgba(255, 255, 255, 0.10); }
+}

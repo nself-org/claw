@@ -1,0 +1,47 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signUp": "Create account",
+    "email": "Email address",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "chat": {
+    "title": "ɳClaw",
+    "newConversation": "New conversation",
+    "placeholder": "Ask anything...",
+    "emptyState": "Start a conversation",
+    "emptyStateDescription": "ɳClaw remembers everything and organises your life automatically.",
+    "topics": "Topics",
+    "conversations": "Conversations",
+    "send": "Send message",
+    "thinking": "Thinking..."
+  },
+  "nav": {
+    "chat": "Chat",
+    "memory": "Memory",
+    "settings": "Settings",
+    "topics": "Topics"
+  },
+  "errors": {
+    "networkError": "Network error — check your connection",
+    "unauthorized": "Session expired — please sign in again",
+    "notFound": "Not found",
+    "serverError": "Server error — try again shortly"
+  }
+}
