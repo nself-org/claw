@@ -28,7 +28,7 @@ Per `.claude/docs/libnclaw-audit.md`, the current state is partial — see that 
 ### Step 1 — Build for the host
 
 ```bash
-cd claw/libs/libnclaw
+cd nclaw/libs/libnclaw
 cargo build --release
 ```
 
