@@ -2,7 +2,7 @@
 
 Contributions are welcome. This page covers dev setup, code conventions, testing, and the PR process.
 
-For a shorter overview, see [CONTRIBUTING.md](../../../CONTRIBUTING.md) at the repo root.
+For security vulnerabilities, do NOT open a public issue — see [.github/SECURITY.md](../SECURITY.md).
 
 ---
 

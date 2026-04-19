@@ -188,7 +188,7 @@ The [wiki](https://github.com/nself-org/nclaw/wiki) is the primary documentation
 
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, code style, and PR guidelines. The [wiki](https://github.com/nself-org/nclaw/wiki) has detailed architecture and feature documentation.
+Contributions are welcome. See [Contributing](https://github.com/nself-org/nclaw/wiki/Contributing) in the wiki for dev setup, code style, and PR guidelines. The [wiki](https://github.com/nself-org/nclaw/wiki) has detailed architecture and feature documentation.
 
 ## License
 
