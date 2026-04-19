@@ -4,6 +4,7 @@
 /// 1. Flushes the write queue (pending offline operations)
 /// 2. Syncs recent data from server to local cache
 /// 3. Updates home screen widget data
+library;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';

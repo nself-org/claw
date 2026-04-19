@@ -2,6 +2,7 @@
 ///
 /// Handles token registration, foreground display, background tap deep-links,
 /// Android channels per category, iOS thread grouping.
+library;
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';

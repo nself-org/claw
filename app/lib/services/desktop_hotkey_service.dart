@@ -2,6 +2,7 @@
 ///
 /// Registers Cmd+Shift+Space (configurable) to open a floating
 /// always-on-top quick capture window.
+library;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';

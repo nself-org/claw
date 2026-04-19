@@ -930,9 +930,6 @@ class _InputBar extends StatelessWidget {
     required this.isStreaming,
     required this.onSend,
     this.onLongPressMic,
-    this.onAttach,
-    this.onCamera,
-    this.onTemplates,
   });
 
   @override

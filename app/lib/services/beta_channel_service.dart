@@ -3,6 +3,7 @@
 /// Manages opt-in beta channel for desktop auto-updates.
 /// iOS/Android beta via TestFlight/Play Internal Test (handled by CI).
 /// Desktop: switches Sparkle/Squirrel/AppImage feed URLs to beta variants.
+library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 

@@ -2,6 +2,7 @@
 ///
 /// Local SQLite database for caching conversations, memories, and topics.
 /// Write queue for pending operations. Sync on reconnect.
+library;
 import 'dart:async';
 import 'dart:convert';
 

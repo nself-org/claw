@@ -2,6 +2,7 @@
 ///
 /// Long-press to record, release to stop. Transcribes via STT,
 /// then inserts draft text into the composer.
+library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class VoiceCaptureFab extends ConsumerStatefulWidget {
 class _VoiceCaptureFabState extends ConsumerState<VoiceCaptureFab>
     with SingleTickerProviderStateMixin {
   bool _recording = false;
-  bool _transcribing = false;
+  final bool _transcribing = false;
   String _lastTranscript = '';
   late AnimationController _pulseController;
   final SttService _stt = SttService();

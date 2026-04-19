@@ -2,6 +2,7 @@
 ///
 /// iOS: reads from App Groups UserDefaults (written by ShareExtension).
 /// Android: reads from MethodChannel (ShareReceiverActivity).
+library;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';

@@ -2,6 +2,7 @@
 ///
 /// Groups notifications by topic ID, provides Reply/Snooze actions,
 /// manages badge counts (iOS: unread conversations, Android: notification count).
+library;
 import 'dart:convert';
 import 'dart:io';
 

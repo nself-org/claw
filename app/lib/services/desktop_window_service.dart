@@ -2,6 +2,7 @@
 ///
 /// Uses window_manager for pin-on-top, remember position/size,
 /// and quick capture floating window.
+library;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';

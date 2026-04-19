@@ -3,6 +3,7 @@
 /// Uses system_tray package for tray icon with submenu.
 /// Shows unread badge. Start minimized to tray (setting).
 /// Launch at login (platform-native). Quit confirmation during streaming.
+library;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';

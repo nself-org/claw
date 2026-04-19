@@ -5,6 +5,7 @@
 /// - light: tap, selection
 /// - medium: long-press, drag start
 /// - heavy: destructive confirm, drop target
+library;
 import 'package:flutter/services.dart';
 
 class HapticService {

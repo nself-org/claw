@@ -2,6 +2,7 @@
 ///
 /// Full-screen stack navigation. Adaptive: Material 3 on Android,
 /// Cupertino on iOS via platform checks.
+library;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';

@@ -2,6 +2,7 @@
 ///
 /// Uses flutter_secure_storage + local_auth for Face ID / Touch ID / fingerprint
 /// authentication on app resume.
+library;
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 

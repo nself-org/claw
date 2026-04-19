@@ -1,4 +1,5 @@
 /// E-26-03: Memory explorer with 4 tabs (Facts, Decisions, Entities, Timeline).
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
@@ -145,7 +146,7 @@ class _MemoryList extends StatelessWidget {
         child: ListView.builder(
           itemCount: 6,
           padding: const EdgeInsets.all(16),
-          itemBuilder: (_, __) => Padding(
+          itemBuilder: (_, _) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Container(
               height: 80,

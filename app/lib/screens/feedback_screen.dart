@@ -3,6 +3,7 @@
 /// Settings > "Send Feedback" opens this form.
 /// Submits to POST /claw/feedback with app version, platform, OS,
 /// optional screenshot, optional email.
+library;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -142,7 +143,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
         children: [
           // Category selector.
           DropdownButtonFormField<String>(
-            value: _category,
+            initialValue: _category,
             decoration: const InputDecoration(
               labelText: 'Category',
               border: OutlineInputBorder(),

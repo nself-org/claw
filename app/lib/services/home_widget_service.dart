@@ -3,6 +3,7 @@
 /// Provides data for iOS WidgetKit and Android AppWidgetProvider via
 /// the home_widget package. Three widget sizes: small (3 recent),
 /// medium (3 recent + quick capture), large (5 recent + 2 nudges).
+library;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';

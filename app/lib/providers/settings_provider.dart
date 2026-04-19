@@ -1,4 +1,5 @@
 /// Settings provider for the 10-tab settings screen (E-26-04).
+library;
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

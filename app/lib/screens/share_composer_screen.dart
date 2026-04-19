@@ -2,6 +2,7 @@
 ///
 /// Displays a preview of shared content, topic picker defaulting to last used,
 /// and a "Save to claw" button that POSTs to /memory/quick-add.
+library;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -88,7 +89,7 @@ class _ShareComposerScreenState extends ConsumerState<ShareComposerScreen> {
 
             // Topic picker
             DropdownButtonFormField<String>(
-              value: _selectedTopicId,
+              initialValue: _selectedTopicId,
               decoration: const InputDecoration(
                 labelText: 'Topic',
                 border: OutlineInputBorder(),

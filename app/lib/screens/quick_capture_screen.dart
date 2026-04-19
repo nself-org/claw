@@ -2,6 +2,7 @@
 ///
 /// Shown when global hotkey is pressed or from tray menu.
 /// Minimal composer with topic picker and send button.
+library;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class _QuickCaptureScreenState extends ConsumerState<QuickCaptureScreen> {
           children: [
             // Topic dropdown (compact)
             DropdownButtonFormField<String>(
-              value: _selectedTopicId,
+              initialValue: _selectedTopicId,
               isDense: true,
               decoration: const InputDecoration(
                 labelText: 'Topic',

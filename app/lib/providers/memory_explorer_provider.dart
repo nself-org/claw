@@ -1,4 +1,5 @@
 /// Memory explorer provider for the 4-tab memory screen (E-26-03).
+library;
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

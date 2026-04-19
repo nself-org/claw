@@ -3,6 +3,7 @@
 /// Uses desktop_drop package. Drop files on:
 /// - Chat pane: adds as attachments to the current message
 /// - Sidebar: drops to a topic become memories
+library;
 import 'package:flutter/material.dart';
 
 /// Wraps a child widget to accept file drops on desktop.
@@ -29,7 +30,7 @@ class FileDropZone extends StatefulWidget {
 }
 
 class _FileDropZoneState extends State<FileDropZone> {
-  bool _hovering = false;
+  final bool _hovering = false;
 
   @override
   Widget build(BuildContext context) {

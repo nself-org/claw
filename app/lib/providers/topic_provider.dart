@@ -2,6 +2,7 @@
 ///
 /// Fetches the topic tree from the backend, supports local expand/collapse,
 /// reorder via drag-and-drop, and offline caching.
+library;
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -177,9 +178,9 @@ class TopicTreeNotifier extends StateNotifier<TopicTreeState> {
         Uri.parse('$url/claw/topics/$topicId'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          if (name != null) 'name': name,
-          if (color != null) 'color': color,
-          if (icon != null) 'icon': icon,
+          'name': ?name,
+          'color': ?color,
+          'icon': ?icon,
         }),
       );
       await loadTopics();

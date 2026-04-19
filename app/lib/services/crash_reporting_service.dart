@@ -3,6 +3,7 @@
 /// Initializes sentry_flutter with PII scrubbing. Reports only:
 /// release version, OS, device model, stack traces.
 /// DSN injected via --dart-define=SENTRY_DSN=...
+library;
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
