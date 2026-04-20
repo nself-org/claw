@@ -51,7 +51,7 @@ class _ApiKeysScreenState extends ConsumerState<ApiKeysScreen> {
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: state.keys.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (ctx, i) => _KeyCard(
                         record: state.keys[i],
                         onRevoke: () => _confirmRevoke(context, state.keys[i]),

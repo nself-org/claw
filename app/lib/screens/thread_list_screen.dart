@@ -315,7 +315,7 @@ class _SearchBar extends StatelessWidget {
           prefixIcon: const Icon(Icons.search, size: 20),
           suffixIcon: ValueListenableBuilder<TextEditingValue>(
             valueListenable: controller,
-            builder: (_, value, _) => value.text.isNotEmpty
+            builder: (_, value, __) => value.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear, size: 18),
                     onPressed: onClear,
@@ -356,7 +356,7 @@ class _TagFilterBar extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: tags.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
         itemBuilder: (_, i) {
           final tag = tags[i];
           final active = tag == activeTag;
@@ -517,7 +517,7 @@ class _FlatList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       itemCount: sessions.length,
-      separatorBuilder: (_, _) =>
+      separatorBuilder: (_, __) =>
           const Divider(height: 1, indent: 60, endIndent: 16),
       itemBuilder: (_, i) => _ThreadTile(
         session: sessions[i],

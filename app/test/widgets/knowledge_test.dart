@@ -11,9 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:nclaw/providers/knowledge_provider.dart';
-import 'package:nclaw/providers/chat_provider.dart';
-import 'package:nclaw/widgets/knowledge_search_sheet.dart';
+import 'package:nself_claw/providers/knowledge_provider.dart';
+import 'package:nself_claw/providers/chat_provider.dart';
+import 'package:nself_claw/widgets/knowledge_search_sheet.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:nclaw/main.dart';
+import 'package:nself_claw/main.dart';
 
 void main() {
   testWidgets('NClawApp renders pairing screen when no server configured',

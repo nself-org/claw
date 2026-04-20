@@ -15,8 +15,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:nclaw/providers/chat_provider.dart';
-import 'package:nclaw/screens/chat_screen.dart';
+import 'package:nself_claw/providers/chat_provider.dart';
+import 'package:nself_claw/screens/chat_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
