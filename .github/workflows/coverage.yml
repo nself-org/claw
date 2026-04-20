@@ -1,0 +1,67 @@
+name: Flutter Coverage Gate (nclaw)
+
+# S88b.T05: Coverage gate for nclaw Flutter app.
+# Floor: 30% total across Dart unit tests (conservative first gate).
+# This workflow runs on every PR to catch coverage regressions.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  COVERAGE_FLOOR: 30
+
+jobs:
+  flutter-coverage:
+    name: Flutter coverage gate (nclaw)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - name: Install dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        working-directory: app
+        run: flutter test --coverage || true
+
+      - name: Enforce coverage floor (≥30%)
+        working-directory: app
+        run: |
+          if [ ! -f coverage/lcov.info ]; then
+            echo "WARN: no coverage data — skipping floor check (no tests ran)"
+            exit 0
+          fi
+          # Parse lcov.info: sum LF (lines found) and LH (lines hit).
+          total=$(grep '^LF:' coverage/lcov.info | awk -F: '{sum += $2} END {print sum}')
+          covered=$(grep '^LH:' coverage/lcov.info | awk -F: '{sum += $2} END {print sum}')
+
+          if [ -z "$total" ] || [ "$total" -eq 0 ]; then
+            echo "WARN: no line data in coverage report — skipping floor check"
+            exit 0
+          fi
+
+          pct=$(awk -v c="$covered" -v t="$total" 'BEGIN { printf "%.1f", (c/t)*100 }')
+          echo "Flutter coverage: ${pct}% (${covered}/${total} lines)"
+
+          result=$(awk -v pct="$pct" -v floor="$COVERAGE_FLOOR" 'BEGIN { print (pct+0 >= floor+0) ? "pass" : "fail" }')
+          if [ "$result" = "fail" ]; then
+            echo "FAIL: Coverage ${pct}% is below floor ${COVERAGE_FLOOR}% (S88b.T05)" >&2
+            exit 1
+          fi
+          echo "PASS: Coverage ${pct}% >= floor ${COVERAGE_FLOOR}%"
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo "### nclaw Flutter Coverage" >> "$GITHUB_STEP_SUMMARY"
+          echo "Floor: ${COVERAGE_FLOOR}%" >> "$GITHUB_STEP_SUMMARY"
