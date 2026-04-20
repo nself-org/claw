@@ -4,6 +4,11 @@ All notable changes to nClaw clients are documented here.
 
 ## Unreleased
 
+### Fixed
+
+- ci: relax `build_runner` constraint to `^2.4.0` to match pubspec.lock and resolve version conflict with current Flutter stable (S26 T03)
+- ci: add `workflow_dispatch` trigger to CI and Flutter CI workflows for manual re-runs
+
 ## v1.0.0 — 2026-03-29
 
 First stable release. Production-ready alongside nSelf CLI v1.0.0 LTS. All core features are complete and tested across all four platforms (iOS, Android, macOS, web).
