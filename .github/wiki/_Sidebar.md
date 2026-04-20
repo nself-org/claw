@@ -39,6 +39,12 @@
 
 ---
 
+**Accessibility**
+
+- [[Screen-Reader-Guide]]
+
+---
+
 **Troubleshooting**
 
 - [[Troubleshooting]]

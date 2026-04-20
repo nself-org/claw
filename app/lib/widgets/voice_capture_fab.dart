@@ -93,54 +93,63 @@ class _VoiceCaptureFabState extends ConsumerState<VoiceCaptureFab>
     final theme = Theme.of(context);
 
     if (_transcribing) {
-      return FloatingActionButton(
-        heroTag: 'voice_capture_fab',
-        onPressed: null,
-        child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: theme.colorScheme.onPrimary,
+      return Semantics(
+        label: 'Transcribing voice input',
+        liveRegion: true,
+        child: FloatingActionButton(
+          heroTag: 'voice_capture_fab',
+          onPressed: null,
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.colorScheme.onPrimary,
+            ),
           ),
         ),
       );
     }
 
-    return GestureDetector(
-      onLongPressStart: (_) => _startRecording(),
-      onLongPressEnd: (_) => _stopRecording(),
-      child: AnimatedBuilder(
-        animation: _pulseController,
-        builder: (context, child) {
-          final scale =
-              _recording ? 1.0 + (_pulseController.value * 0.15) : 1.0;
-          return Transform.scale(
-            scale: scale,
-            child: FloatingActionButton(
-              heroTag: 'voice_capture_fab',
-              backgroundColor: _recording
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.primaryContainer,
-              onPressed: () {
-                if (!_recording) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Long-press and hold to record'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-              child: Icon(
-                _recording ? Icons.mic : Icons.mic_none,
-                color: _recording
-                    ? theme.colorScheme.onError
-                    : theme.colorScheme.onPrimaryContainer,
+    return Semantics(
+      label: _recording ? 'Recording — release to stop' : 'Voice input',
+      hint: _recording ? null : 'Long-press and hold to record',
+      button: true,
+      child: GestureDetector(
+        onLongPressStart: (_) => _startRecording(),
+        onLongPressEnd: (_) => _stopRecording(),
+        child: AnimatedBuilder(
+          animation: _pulseController,
+          builder: (context, child) {
+            final scale =
+                _recording ? 1.0 + (_pulseController.value * 0.15) : 1.0;
+            return Transform.scale(
+              scale: scale,
+              child: FloatingActionButton(
+                heroTag: 'voice_capture_fab',
+                backgroundColor: _recording
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.primaryContainer,
+                onPressed: () {
+                  if (!_recording) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Long-press and hold to record'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                child: Icon(
+                  _recording ? Icons.mic : Icons.mic_none,
+                  color: _recording
+                      ? theme.colorScheme.onError
+                      : theme.colorScheme.onPrimaryContainer,
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

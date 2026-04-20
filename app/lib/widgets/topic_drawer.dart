@@ -212,7 +212,14 @@ class _TopicNodeTile extends ConsumerWidget {
             },
             builder: (context, candidateData, rejectedData) {
               final isDropTarget = candidateData.isNotEmpty;
-              return InkWell(
+              return Semantics(
+                label: _buildSemanticLabel(node),
+                selected: isSelected,
+                button: true,
+                hint: hasChildren
+                    ? (node.isExpanded ? 'Tap to collapse' : 'Tap to expand')
+                    : 'Tap to open',
+                child: InkWell(
                 onTap: () {
                   HapticFeedback.selectionClick();
                   ref.read(topicTreeProvider.notifier).selectTopic(node.id);
@@ -282,19 +289,22 @@ class _TopicNodeTile extends ConsumerWidget {
                         ),
                       ),
 
-                      // Unread badge
+                      // Unread badge — excluded from a11y tree (count
+                      // is already included in the parent Semantics label).
                       if (node.unreadCount > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${node.unreadCount}',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onPrimary,
+                        ExcludeSemantics(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${node.unreadCount}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                              ),
                             ),
                           ),
                         ),
@@ -304,7 +314,7 @@ class _TopicNodeTile extends ConsumerWidget {
               );
             },
           ),
-        ),
+        ), // Semantics
         // Children (expanded)
         if (hasChildren && node.isExpanded)
           ...node.children.map(
@@ -312,6 +322,17 @@ class _TopicNodeTile extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  String _buildSemanticLabel(TopicNode node) {
+    final buf = StringBuffer(node.name);
+    if (node.unreadCount > 0) {
+      buf.write(', ${node.unreadCount} unread');
+    }
+    if (node.children.isNotEmpty) {
+      buf.write(node.isExpanded ? ', expanded' : ', collapsed');
+    }
+    return buf.toString();
   }
 
   Color _parseColor(String hex) {
