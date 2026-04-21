@@ -311,10 +311,11 @@ class _TopicNodeTile extends ConsumerWidget {
                     ],
                   ),
                 ),
+              ),
               );
             },
           ),
-        ), // Semantics
+        ), // LongPressDraggable
         // Children (expanded)
         if (hasChildren && node.isExpanded)
           ...node.children.map(

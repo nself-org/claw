@@ -4,11 +4,12 @@
 // so VoiceOver (iOS/macOS) and TalkBack (Android) can announce them.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../lib/widgets/topic_drawer.dart';
-import '../../lib/widgets/voice_capture_fab.dart';
+import 'package:nself_claw/widgets/topic_drawer.dart';
+import 'package:nself_claw/widgets/voice_capture_fab.dart';
 
 void main() {
   group('TopicDrawer — Semantics', () {
@@ -77,15 +78,10 @@ void main() {
         ),
       );
 
-      // ExcludeSemantics means no semantics node is contributed for the badge
-      final semanticsNodes = tester.semantics;
-      final allLabels = semanticsNodes
-          .toList()
-          .map((n) => n.toString())
-          .join();
+      // ExcludeSemantics means no semantics node is contributed for the badge.
       // The badge text '3' should NOT appear as a standalone semantics label
       // (it is included in the parent topic tile label instead).
-      expect(allLabels.contains('SemanticsNode(3'), isFalse);
+      expect(find.bySemanticsLabel('3'), findsNothing);
     });
   });
 
