@@ -1,6 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -41,9 +38,27 @@ val gitVersionName: String by lazy {
 
 // Load key.properties for release signing (CI writes this from secrets)
 val keyPropertiesFile = rootProject.file("key.properties")
-val keyProperties = java.util.Properties()
-if (keyPropertiesFile.exists()) {
-    keyProperties.load(java.io.FileInputStream(keyPropertiesFile))
+val keyProperties: Map<String, String> by lazy {
+    val props = mutableMapOf<String, String>()
+    if (keyPropertiesFile.exists()) {
+        try {
+            keyPropertiesFile.inputStream().use { input ->
+                input.bufferedReader().useLines { lines ->
+                    lines.forEach { line ->
+                        if (line.isNotEmpty() && !line.startsWith("#")) {
+                            val (key, value) = line.split("=", limit = 2).let {
+                                it[0].trim() to (it.getOrNull(1)?.trim() ?: "")
+                            }
+                            props[key] = value
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore: key.properties missing or malformed
+        }
+    }
+    props
 }
 
 android {
@@ -70,12 +85,12 @@ android {
     }
 
     signingConfigs {
-        if (keyPropertiesFile.exists()) {
+        if (keyPropertiesFile.exists() && keyProperties.isNotEmpty()) {
             create("release") {
-                keyAlias = keyProperties["keyAlias"] as String
-                keyPassword = keyProperties["keyPassword"] as String
-                storeFile = file(keyProperties["storeFile"] as String)
-                storePassword = keyProperties["storePassword"] as String
+                keyAlias = keyProperties["keyAlias"] ?: ""
+                keyPassword = keyProperties["keyPassword"] ?: ""
+                storeFile = keyProperties["storeFile"]?.let { file(it) }
+                storePassword = keyProperties["storePassword"] ?: ""
             }
         }
     }
