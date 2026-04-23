@@ -1,6 +1,6 @@
 # ɳClaw
 
-[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/nself-org/claw/releases)
+[![Version](https://img.shields.io/github/v/release/nself-org/nclaw?label=version)](https://github.com/nself-org/claw/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![coverage](https://codecov.io/gh/nself-org/claw/branch/main/graph/badge.svg)](https://codecov.io/gh/nself-org/claw)
 <!-- VERSION_BADGE -->
