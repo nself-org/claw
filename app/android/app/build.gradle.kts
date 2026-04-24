@@ -63,7 +63,7 @@ val keyProperties: Map<String, String> by lazy {
 
 android {
     namespace = "com.nself.claw"
-    compileSdk = 34
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
