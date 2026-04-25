@@ -246,3 +246,11 @@ Versions follow [Semantic Versioning](https://semver.org/). For the full commit 
 ```bash
 git log --oneline
 ```
+
+## [1.0.10] - 2026-04-23 (Wave 5)
+
+### Added
+
+- **Flutter auth SDK** (O08) — Flutter auth SDK updated to use unified auth (FF_UNIFIED_AUTH). Session tokens use np_sessions v2 format. AUTH_COOKIE_* env vars respected.
+- **Claw BIOS Layers 1+2** (C17) — Backend claw plugin now boots with identity + runtime context layers. nclaw app receives enriched system-prompt responses.
+

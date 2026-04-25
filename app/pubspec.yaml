@@ -40,7 +40,9 @@ dependencies:
   path: ^1.9.0
   flutter_secure_storage: ^9.2.0
 
-  # Auth
+  # Auth SDK
+  nself_auth_sdk:
+    path: ../../../plugins-pro/paid/auth/flutter
   local_auth: ^2.3.0
 
   # Notifications & messaging
@@ -112,9 +114,8 @@ flutter_launcher_icons:
   adaptive_icon_background: "#0F0F1A"
   adaptive_icon_foreground: ".github/wiki/brand/claw-icon-fg-432.png"
   adaptive_icon_monochrome: ".github/wiki/brand/claw-icon-mono-432.png"
-  web:
-    generate: true
-    image_path: ".github/wiki/brand/claw-icon-1024.png"
+  # UD-P96-05 default: Windows and web platforms stripped from nclaw.
+  # nclaw targets iOS, Android, and macOS only.
   macos:
     generate: true
     image_path: ".github/wiki/brand/claw-icon-1024.png"
@@ -128,7 +129,8 @@ flutter_native_splash:
     color: "#0F0F1A"
     icon_background_color: "#0F0F1A"
     image: ".github/wiki/brand/claw-icon-1024.png"
-  web: true
+  # UD-P96-05: web platform stripped from nclaw — iOS/Android/macOS only.
+  web: false
 
 msix_config:
   display_name: ɳClaw

@@ -4,3 +4,4 @@ output-localization-file: app_localizations.dart
 output-class: AppLocalizations
 output-dir: lib/l10n
 nullable-getter: false
+# P96 S231: added es, fr, de, ja, zh, ar stubs (2026-04-24)

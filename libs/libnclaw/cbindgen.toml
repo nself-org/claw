@@ -1,0 +1,24 @@
+# cbindgen configuration for libnclaw
+# Generates C headers for Swift (via clang importer) and Kotlin (via JNA/JNI)
+# Run: cbindgen --config cbindgen.toml --crate libnclaw --output libnclaw.h
+
+language = "C"
+include_guard = "LIBNCLAW_H"
+documentation = true
+documentation_style = "doxy"
+style = "tag"
+
+[parse]
+parse_deps = false
+
+[export]
+# Only export symbols explicitly marked #[no_mangle] pub extern "C"
+include = []
+
+[fn]
+# Use snake_case in generated C API (matches Rust convention)
+rename_args = "SnakeCase"
+
+[layout]
+# Align to 8 bytes for cross-platform ABI stability
+align_n = 8

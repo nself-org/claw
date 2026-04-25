@@ -135,9 +135,34 @@ flutter run -d chrome
 
 ## First launch
 
-When the app starts, it will prompt for your nSelf backend URL. Enter the URL of your running nSelf instance (e.g., `http://localhost:4000` for local development, or your server's domain for a remote deployment).
+When the app starts for the first time, it runs a six-screen setup wizard:
 
-After connecting, sign in using the credentials you configured in your nSelf backend.
+| Screen | Purpose |
+|--------|---------|
+| 0 — Welcome | Intro to ɳClaw |
+| 1 — Server resources | Detects local model availability |
+| 2 — Model install | Optionally downloads a local LLM |
+| 3 — Connect Your Tools | Enable optional plugins: Google Workspace, Notifications, Browser Control, Voice Input, Scheduler |
+| 4 — Daily Schedule | Set timezone + wake time + starter recipes (only shown if Scheduler was enabled) |
+| 5 — Agent Style | Choose a starting agent template: Personal Assistant, Research Agent, Writing Coach, Code Reviewer, or Custom |
+
+**Screen 3 — Plugin toggles:**
+- Toggle any plugin on or off. Google Workspace opens a browser OAuth flow.
+- Tap **Skip All** to proceed without enabling any optional plugins.
+- Tap **Continue** to advance.
+
+**Screen 4 — Schedule (only shown when Scheduler is enabled):**
+- Pick your timezone and daily wake time.
+- Select which starter recipes to activate: Morning Briefing, End-of-Day Summary, Weekly Review.
+
+**Screen 5 — Agent style:**
+- Each template sets your agent's persona and default tool permissions.
+- Selecting **Custom** opens a blank agent editor after setup completes.
+- Tap **Finish Setup** to commit all choices. ɳClaw calls `POST /claw/onboarding/complete` with your selections in a single transaction.
+
+The wizard does not show again after completion. To re-run it, go to Settings and choose "Reset onboarding".
+
+After the wizard, sign in using the credentials you configured in your nSelf backend.
 
 ---
 
