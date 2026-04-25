@@ -18,6 +18,7 @@ jobs:
   flutter-analyze:
     name: Flutter Analyze & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: app
@@ -40,6 +41,7 @@ jobs:
   flutter-build-android:
     name: Flutter Build Android
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: flutter-analyze
     defaults:
       run:
@@ -65,6 +67,7 @@ jobs:
   flutter-build-ios:
     name: Flutter Build iOS
     runs-on: macos-latest
+    timeout-minutes: 20
     needs: flutter-analyze
     defaults:
       run:
@@ -92,6 +95,7 @@ jobs:
   libnclaw-test:
     name: libnclaw Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -123,6 +127,7 @@ jobs:
   swift-build:
     name: Swift Desktop Build
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
