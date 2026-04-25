@@ -254,3 +254,13 @@ git log --oneline
 - **Flutter auth SDK** (O08) — Flutter auth SDK updated to use unified auth (FF_UNIFIED_AUTH). Session tokens use np_sessions v2 format. AUTH_COOKIE_* env vars respected.
 - **Claw BIOS Layers 1+2** (C17) — Backend claw plugin now boots with identity + runtime context layers. nclaw app receives enriched system-prompt responses.
 
+
+## v1.0.12 (P96 — 2026-04-25)
+
+### Added
+- Flutter ship-ready: l10n ARB files generated for all supported locales.
+- Brand assets updated to v1.0.12 icon set.
+- Auth SDK migration: replaced direct Hasura auth calls with nSelf auth SDK client.
+
+### Fixed
+- `web/nclaw/package.json`: added `@nself-web/og` workspace dependency required for Open Graph image generation.
