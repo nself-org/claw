@@ -1,15 +1,42 @@
-title = "nSelf gitleaks config"
+title = "nSelf nClaw gitleaks config"
 
 [extend]
 useDefault = true
 
-[[allowlist.paths]]
-description = "Test fixtures and example files"
+[allowlist]
 paths = [
-  "testdata/",
-  "*.example",
-  "*.example.env",
-  ".env.example",
-  ".env.dev",
-  ".env.staging",
+  # Test files — mock credentials are intentional test vectors
+  '''.*_test\.dart''',
+  '''.*_test\.go''',
+  '''.*_test\.rs''',
+  '''.*\.test\.ts''',
+  '''.*\.spec\.ts''',
+  '''test/''',
+  '''testdata/''',
+  '''\.bats$''',
+  # Example and template env files — placeholder values only
+  '''\.env\.example$''',
+  '''\.example\.env$''',
+  '''\.env\.template$''',
+  '''\.env\.dev$''',
+  '''\.env\.staging$''',
+  # Documentation and reference files — contain example credentials and API keys
+  '''docs/''',
+  '''\.wiki/''',
+  '''\.github/wiki/''',
+  '''\.github/docs/''',
+  '''\.github/workflows/''',
+  '''\.claude/''',
+  # libnclaw Rust test fixtures
+  '''libs/libnclaw/.*test.*''',
+  '''libs/libnclaw/benches/''',
+]
+regexes = [
+  # Passphrase key constant in crypto tests (not a real key)
+  '''PASSPHRASE_KEY_CONSTANT''',
+  # Algorithm names in changelog/docs that match key patterns
+  '''XChaCha20-Poly1305''',
+  '''X25519''',
+  # Keychain lookup key name (string used to retrieve passphrase from secure storage, not the passphrase itself)
+  '''nclaw\.db\.passphrase\.v1''',
 ]
